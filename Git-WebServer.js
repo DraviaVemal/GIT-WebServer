@@ -1,47 +1,50 @@
-exports.Server = config => {
-    var Config = config || {};
-    Port = Config.port || 80;
-    GitURL = Config.GitURL || "/git";
-    RepoDir = Config.RepoDir || "repos";
-    Repositories = Config.Repositories;
-    DefaultUsers = Config.DefaultUsers || [];
-    AppName = Config.AppName || "Git-WebServer";
-    var Express = require("express");
-    var ExpressHandlebars = require("express-handlebars");
-    var ExpressSession = require("express-session");
-    var Route = Express.Router();
-    var BodyParser = require('body-parser');
-    var MethodOverride = require('method-override');
-    var Auth = require('http-auth');
-    var ChildProcess = require('child_process');
-    var Logging = require("morgan");
-    var Spawn = ChildProcess.spawn;
-    var ExpressServer = Express();
-    ExpressServer.engine(
+exports.server = function(Config) {
+    var config = Config || {};
+    port = config.port || 80;
+    gitURL = config.gitURL || "/git";
+    repoDir = config.repoDir || "repos";
+    repositories = config.repositories;
+    defaultUsers = config.defaultUsers || [];
+    appName = config.appName || "Git-WebServer";
+    var express = require("express");
+    var expressHandlebars = require("express-handlebars");
+    var expressSession = require("express-session");
+    var route = express.Router();
+    var bodyParser = require('body-parser');
+    var methodOverride = require('method-override');
+    var auth = require('http-auth');
+    var childProcess = require('child_process');
+    var logging = require("morgan");
+    var spawn = childProcess.spawn;
+    var expressServer = express();
+    var request = require("./modules/request");
+    expressServer.engine(
         "handlebars",
-        ExpressHandlebars({
+        expressHandlebars({
             defaultLayout: "default"
         })
     );
-    ExpressServer.use(BodyParser.urlencoded({ extended: false }));
-    ExpressServer.use(MethodOverride());
-    ExpressServer.use(Express.query());
-    ExpressServer.disable("x-powered-by");
-    ExpressServer.set("view engine", "handlebars");
-    ExpressServer.use(Logging("dev", Route));
-    ExpressServer.use((req, res) => {
+    expressServer.use(bodyParser.urlencoded({ extended: false }));
+    expressServer.use(methodOverride());
+    expressServer.use(express.query());
+    expressServer.disable("x-powered-by");
+    expressServer.set("view engine", "handlebars");
+    expressServer.use(logging("dev", route));
+    expressServer.use(request.get(route));
+    expressServer.use(request.post(route));
+    expressServer.use(function(req, res) {
         res.status(404);
-        res.render("error/404", {
+        res.render("errors/404", {
             layout: false
         });
     });
-    ExpressServer.use((req, res) => {
+    expressServer.use(function(req, res) {
         res.status(500);
-        res.render("error/500", {
+        res.render("errors/500", {
             layout: false
         });
     });
-    ExpressServer.listen(Port, () => {
-        console.log(AppName + " Running at Port : " + Port);
+    expressServer.listen(port, function(){
+        console.log(appName + " Running at Port : " + port);
     });
-}
+};

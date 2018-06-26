@@ -1,2 +1,2 @@
-var GitWebServer = require("./Git-WebServer");
-GitWebServer.Server();
+var gitWebServer = require("./Git-WebServer");
+gitWebServer.server();

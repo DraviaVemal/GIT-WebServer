@@ -2,9 +2,9 @@
   "name": "git-webserver",
   "version": "0.1.0",
   "description": "Web Server Integrated GIT Version Control System",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",

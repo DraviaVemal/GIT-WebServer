@@ -1,2 +1,4 @@
 var gitWebServer = require("./Git-WebServer");
-gitWebServer.server();
+gitWebServer.server({
+    salt:"keyboardcat"
+});

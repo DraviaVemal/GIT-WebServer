@@ -23,11 +23,15 @@
   "homepage": "https://github.com/DraviaVemal/GIT-WebServer#readme",
   "dependencies": {
     "child_process": "^1.0.2",
+    "connect-mongo": "^2.0.1",
+    "cookie-parser": "^1.4.3",
     "express": "^4.16.3",
     "express-handlebars": "^3.0.0",
     "express-session": "^1.15.6",
+    "full-git-history": "^1.2.4",
     "http-auth": "^3.2.3",
     "method-override": "^2.3.10",
+    "mongoose": "^5.1.7",
     "morgan": "^1.9.0"
   }
 }

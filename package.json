@@ -32,6 +32,7 @@
     "http-auth": "^3.2.3",
     "method-override": "^2.3.10",
     "mongoose": "^5.1.7",
+    "mongoose-auto-increment-fix": "^5.0.2",
     "morgan": "^1.9.0"
   }
 }

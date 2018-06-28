@@ -30,24 +30,30 @@ exports.post = function (route, config) {
     var git = require("./git");
     //Post Request Handling Area
     route.post("/login", function (req, res) {
+        var userDB = require("../dbSchema/user");
+        var userCollection = userDB.users(config);
         res.render("pages/login", {
-
+            
         });
     });
     route.post("/signup", function (req, res) {
+        var userDB = require("../dbSchema/user");
+        var userCollection = userDB.users(config);
         res.render("pages/signup", {
 
         });
     });
     route.post("/forgot", function (req, res) {
+        var userDB = require("../dbSchema/user");
+        var userCollection = userDB.users(config);
         res.render("page/forgotPass", {
 
         });
     });
-    route.post("/createRepo", function (req, res, config) {
+    route.post("/createRepo", function (req, res) {
         git.gitInit(req, res, config);
     });
-    route.post("/deleteRepo", function (req, res, config) {
+    route.post("/deleteRepo", function (req, res) {
         git.deleteRepo(req, res, config);
     });
     route.post(config.gitURL + '/:reponame/git-receive-pack', function (req, res) {

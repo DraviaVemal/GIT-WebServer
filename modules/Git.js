@@ -120,6 +120,15 @@ exports.postUploadPack = function (req, res, config) {
 };
 
 exports.gitInit = function (req, res, config) {
+    var gitDB = require("../dbSchema/git");
+    var gitRepo = gitDB.gitRepo(config);
+    gitRepo.create({
+        Repo: req.body.repo,
+        logicName: req.body.repo.toUpperCase()
+    }, function (err) {
+        if (config.logging)
+            if (err) console.log(err);
+    });
     var simpleGit = require('simple-git')("../" + config.repoDir + "/" + req.body.repo + "/");
     simpleGit.init(true, function (err) {
         if (!err) res.send("done");

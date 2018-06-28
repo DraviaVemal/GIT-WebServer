@@ -120,32 +120,56 @@ exports.postUploadPack = function (req, res, config) {
 };
 
 exports.gitInit = function (req, res, config) {
-    var gitDB = require("../dbSchema/git");
-    var gitRepo = gitDB.gitRepo(config);
-    gitRepo.create({
-        Repo: req.body.repo,
-        logicName: req.body.repo.toUpperCase()
-    }, function (err) {
-        if (config.logging)
-            if (err) console.log(err);
-    });
-    var simpleGit = require('simple-git')("../" + config.repoDir + "/" + req.body.repo + "/");
-    simpleGit.init(true, function (err) {
-        if (!err) res.send("done");
-        else {
-            if (config.logging) console.log(err);
-            res.send("fail");
-        }
-    });
+    if (req.body.repo != undefined && req.body.repo != "" && req.body.repo != null) {
+        var gitDB = require("../dbSchema/git");
+        var data = {
+            repo: req.body.repo,
+            user: "user", //TODO
+            url: "url" //TODO
+        };
+        gitDB.gitRepoCreate(req, res, data, config, function (req, res, config) {
+            var fileSystem = require("fs");
+            if (!fileSystem.existsSync(config.repoDir + "/" + req.body.repo)) {
+                fileSystem.mkdirSync(config.repoDir + "/" + req.body.repo);
+            }
+            var simpleGit = require('simple-git')(config.repoDir + "/" + req.body.repo + "/");
+            simpleGit.init(true, function (err) {
+                if (!err) res.send("done");
+                else {
+                    if (config.logging) console.log(err);
+                    res.send("fail");
+                }
+            });
+        });
+    } else {
+        if (config.logging) console.log("Error : No Repo name received in Init");
+        res.status(403);
+        res.send();
+    }
 };
 
 exports.deleteRepo = function (req, res, config) {
-    var fileSystem = require("fs");
-    if (fileSystem.existsSync("../" + config.repoDir + "/" + req.body.repo + "/")) {
-        fileSystem.unlinkSync("../" + config.repoDir + "/" + req.body.repo + "/");
-        if (config.logging) console.log("Repository deleted");
+    if (req.body.repo != undefined && req.body.repo != "" && req.body.repo != null) {
+        var gitDB = require("../dbSchema/git");
+        var data = {
+            repo: req.body.repo
+        };
+        gitDB.gitRepoDelete(req, res, data, config, function () {
+            var fileSystem = require("fs");
+            if (fileSystem.existsSync(config.repoDir + "/" + req.body.repo)) {
+                var rimraf = require('rimraf');
+                rimraf(config.repoDir + "/" + req.body.repo, function () {
+                    if (config.logging) console.log("Repositorie deleted successfully");
+                    res.send("done");
+                });
+            } else {
+                if (config.logging) console.log("Repositorie not found");
+                res.send("done");
+            }
+        });
     } else {
-        if (config.logging) console.log("Repository folder not found");
+        if (config.logging) console.log("Error : No Repo name received in delete");
+        res.status(403);
+        res.send();
     }
-    res.send("done");
 };

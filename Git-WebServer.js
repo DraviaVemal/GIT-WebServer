@@ -16,6 +16,7 @@ exports.server = function (Config) {
         config.dbURL = config.dbURL || "localhost";
         config.dbUser = config.dbUser || "";
         config.dbPassword = config.dbPassword || "";
+        config.database = config.database || "Mongo";
         //Dependency Middlewares
         var express = require("express");
         var expressHandlebars = require("express-handlebars");

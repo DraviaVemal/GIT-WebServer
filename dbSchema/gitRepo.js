@@ -50,14 +50,15 @@ exports.gitRepo = function (config) {
  * Create repository record in DB
  * @param  {object} req Request Object
  * @param  {object} res Response Object
- * @param  {JSON} data Input data
+ * @param  {{repo:String,user:String,url:String}} data Input data
  * @param  {JSON} config Master Configuration JSON
  * @param  {function} next Callback function(req,res,config)
  */
 exports.gitRepoCreate = function (req, res, data, config, next) {
-    if ((data.repo != "" && data.repo != null && data.repo != undefined) &&
-        (data.user != "" && data.user != null && data.user != undefined) &&
-        (data.url != "" && data.url != null && data.url != undefined)) {
+    var validation = require("../modules/validation");
+    if (validation.variableNotEmpty(data.repo, 4) &&
+        validation.variableNotEmpty(data.user) &&
+        validation.variableNotEmpty(data.url)) {
         if (config.database == "Mongo") {
             var gitRepo = this.gitRepo(config);
             gitRepo.create({
@@ -95,7 +96,8 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
  * @param  {function} next Callback function(req,res,config)
  */
 exports.gitRepoDelete = function (req, res, data, config, next) {
-    if (data.repo != "" && data.repo != null && data.repo != undefined) {
+    var validation = require("../modules/validation");
+    if (validation.variableNotEmpty(data.repo, 4)) {
         if (config.database == "Mongo") {
             var gitRepo = exports.gitRepo(config);
             gitRepo.deleteOne({

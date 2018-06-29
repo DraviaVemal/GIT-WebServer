@@ -65,10 +65,11 @@ exports.users = function (config) {
  * @returns {JSON} return config.exist
  */
 exports.createUser = function (req, res, data, config, next) {
-    if ((data.name != "" && data.name != null && data.name != undefined && data.name.length >= 3) &&
-        (data.userName != "" && data.userName != null && data.userName != undefined && data.userName.length >= 3) &&
-        (data.eMail != "" && data.eMail != null && data.eMail != undefined /*TODO Mail Regx Validation */ ) &&
-        (data.password != "" && data.password != null && data.password != undefined && data.password.length >= 8)) {
+    var validation = require("../modules/validation");
+    if (validation.variableNotEmpty(data.name, 3) &&
+        validation.variableNotEmpty(data.userName, 3) &&
+        validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ &&
+        validation.variableNotEmpty(data.password, 8)) {
         if (config.database == "Mongo") {
             var users = exports.users(config);
             users.create(data, function (err) {
@@ -89,6 +90,28 @@ exports.createUser = function (req, res, data, config, next) {
         }
     } else {
         if (config.logging) console.log("Create User Missing Input Error");
+        res.status(403);
+        res.send();
+    }
+};
+
+/**
+ * Creates new user record in DB
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {{userName:String,eMail:Strings,password:String}} data Input data
+ * @param  {JSON} config Master Configuration JSON
+ * @param  {function} next Callback function(req,res,config)
+ * @returns {JSON} return config.valid
+ */
+exports.loginUser = function (req, res, data, config, next) {
+    var validation = require("../modules/validation");
+    if ((validation.variableNotEmpty(data.userName, 3) ||
+            validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ ) &&
+        validation.variableNotEmpty(data.password, 8)) {
+            
+    } else {
+        if (config.logging) console.log("Login User Missing Input Error");
         res.status(403);
         res.send();
     }

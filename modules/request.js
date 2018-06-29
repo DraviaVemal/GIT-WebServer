@@ -40,24 +40,34 @@ exports.post = function (route, config) {
     var git = require("./git");
     route.post("/login", function (req, res) {
         var userDB = require("../dbSchema/user");
-        var userCollection = userDB.users(config);
-        res.render("pages/login", {
-            
+        var data = {
+            userName: req.body.userName,
+            eMail: req.body.eMail,
+            password: req.body.password
+        };
+        userDB.loginUser(req, res, data, config, function (req, res, config) {
+            if(config.valid){
+                //TODO : Valid User Login
+            }else{
+                res.render("pages/login", {
+
+                });
+            }
         });
     });
     route.post("/signup", function (req, res) {
         var userDB = require("../dbSchema/user");
         var data = {
-            name:req.body.name,
-            userName:req.body.userName,
-            eMail:req.body.eMail,
-            password:req.body.password
+            name: req.body.name,
+            userName: req.body.userName,
+            eMail: req.body.eMail,
+            password: req.body.password
         };
-        userDB.createUser(req,res,data,config,function(req,res,config){
-            if(config.exist){
+        userDB.createUser(req, res, data, config, function (req, res, config) {
+            if (config.exist) {
                 //TODO Existing User
                 res.send("User Exist");
-            }else{
+            } else {
                 res.render("pages/signup", {
 
                 });

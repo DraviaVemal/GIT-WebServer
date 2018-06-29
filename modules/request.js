@@ -6,24 +6,43 @@
 exports.get = function (route, config) {
     var git = require("./git");
     route.get("/", function (req, res) {
-        res.render("pages/home", {
+        var validation = require("./validation");
+        if (validation.loginValidation(req, res, config)) {
+            res.render("pages/home", {
+                //TODO : Post Login Page
+            });
+        } else {
+            res.render("pages/home", {
 
-        });
+            });
+        }
     });
     route.get("/login", function (req, res) {
-        res.render("pages/login", {
+        if (req.cookie.SSID) {
+            res.redirect("/");
+        } else {
+            res.render("pages/login", {
 
-        });
+            });
+        }
     });
     route.get("/signup", function (req, res) {
-        res.render("pages/signup", {
+        if (req.cookie.SSID) {
+            res.redirect("/");
+        } else {
+            res.render("pages/signup", {
 
-        });
+            });
+        }
     });
     route.get("/forgot", function (req, res) {
-        res.render("page/forgotPass", {
+        if (req.cookie.SSID) {
+            res.redirect("/");
+        } else {
+            res.render("page/forgotPass", {
 
-        });
+            });
+        }
     });
     route.get(config.gitURL + '/:reponame/info/refs', function (req, res) {
         git.checkAuth(req, res, git.getInfoRefs, config);
@@ -46,9 +65,21 @@ exports.post = function (route, config) {
             password: req.body.password
         };
         userDB.loginUser(req, res, data, config, function (req, res, config) {
-            if(config.valid){
-                //TODO : Valid User Login
-            }else{
+            if (config.valid) {
+                req.session.regenerate(function (err) {
+                    if (err) {
+                        if (config.logging) console.log(err);
+                        res.status(403);
+                        res.send();
+                    } else {
+                        req.session.active = true;
+                        req.session.access = {};
+                        var validation = require("./validation");
+                        validation.loginInitialisation(req, res, config);
+                        res.redirect("/");
+                    }
+                });
+            } else {
                 res.render("pages/login", {
 
                 });
@@ -75,17 +106,21 @@ exports.post = function (route, config) {
         });
     });
     route.post("/forgot", function (req, res) {
-        var userDB = require("../dbSchema/user");
-        var userCollection = userDB.users(config);
         res.render("page/forgotPass", {
 
         });
     });
     route.post("/createRepo", function (req, res) {
-        git.gitInit(req, res, config);
+        var validation = require("./validation");
+        if (validation.loginValidation(req, res, config)) {
+            git.gitInit(req, res, config);
+        }
     });
     route.post("/deleteRepo", function (req, res) {
-        git.deleteRepo(req, res, config);
+        var validation = require("./validation");
+        if (validation.loginValidation(req, res, config)) {
+            git.deleteRepo(req, res, config);
+        }
     });
     route.post(config.gitURL + '/:reponame/git-receive-pack', function (req, res) {
         git.checkAuth(req, res, git.postReceivePack, config);

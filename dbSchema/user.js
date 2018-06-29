@@ -108,8 +108,40 @@ exports.loginUser = function (req, res, data, config, next) {
     var validation = require("../modules/validation");
     if ((validation.variableNotEmpty(data.userName, 3) ||
             validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ ) &&
-        validation.variableNotEmpty(data.password, 8)) {
-            
+        validation.variableNotEmpty(data.password, 8)){
+        if (config.database == "Mongo") {
+            var users = exports.users(config);
+            var query = {
+                userName: req.body.userName
+            };
+            if (validation.variableNotEmpty(data.eMail)) {
+                query = {
+                    eMail: req.body.eMail
+                };
+            }
+            users.findOne(query, function (err, result) {
+                if (err) {
+                    if (config.logging) {
+                        console.log(err);
+                    }
+                    res.status(503);
+                    res.send();
+                } else {
+                    var bcrypt = require("bcryptjs");
+                    var validUser = bcrypt.compareSync(
+                        req.body.password,
+                        result.password
+                    );
+                    if (validUser) {
+                        config.valid = true;
+                        next(req, res, config);
+                    } else {
+                        config.valid = false;
+                        next(req, res, config);
+                    }
+                }
+            });
+        }
     } else {
         if (config.logging) console.log("Login User Missing Input Error");
         res.status(403);

@@ -1,8 +1,19 @@
+/**
+ * User object cretaion function
+ * @param  {JSON} user Git Authentication user details
+ */
 exports.User = function (user) {
     this.username = user.username;
     this.password = user.password;
 };
 
+/**
+ * Check the authentication of incomming request
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {function} next Callback function(req, res, config)
+ * @param  {JSON} config Master Configuration JSON
+ */
 exports.checkAuth = function (req, res, next, config) {
     var auth = require('http-auth');
     var reponame = req.params.reponame;
@@ -33,6 +44,12 @@ exports.checkAuth = function (req, res, next, config) {
 
 };
 
+/**
+ * Git clone request handling (Get method)
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} config Master Configuration JSON
+ */
 exports.getInfoRefs = function (req, res, config) {
     var childProcess = require('child_process');
     var spawn = childProcess.spawn;
@@ -61,6 +78,12 @@ exports.getInfoRefs = function (req, res, config) {
     });
 };
 
+/**
+ * Git Push code handling (Post Method)
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} config Master Configuration JSON
+ */
 exports.postReceivePack = function (req, res, config) {
     var childProcess = require('child_process');
     var spawn = childProcess.spawn;
@@ -98,6 +121,12 @@ exports.postReceivePack = function (req, res, config) {
     });
 };
 
+/**
+ * Git clone request handling (Post method)
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} config Master Configuration JSON
+ */
 exports.postUploadPack = function (req, res, config) {
     var childProcess = require('child_process');
     var spawn = childProcess.spawn;
@@ -119,9 +148,15 @@ exports.postUploadPack = function (req, res, config) {
     });
 };
 
+/**
+ * Function to create and initialise Git repository in DB and File system
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} config Master Configuration JSON
+ */
 exports.gitInit = function (req, res, config) {
     if (req.body.repo != undefined && req.body.repo != "" && req.body.repo != null) {
-        var gitDB = require("../dbSchema/git");
+        var gitDB = require("../dbSchema/gitRepo");
         var data = {
             repo: req.body.repo,
             user: "user", //TODO
@@ -147,10 +182,15 @@ exports.gitInit = function (req, res, config) {
         res.send();
     }
 };
-
+/**
+ * Delete the Git repository from DB and File System
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} config Master Configuration JSON
+ */
 exports.deleteRepo = function (req, res, config) {
     if (req.body.repo != undefined && req.body.repo != "" && req.body.repo != null) {
-        var gitDB = require("../dbSchema/git");
+        var gitDB = require("../dbSchema/gitRepo");
         var data = {
             repo: req.body.repo
         };

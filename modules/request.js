@@ -1,6 +1,10 @@
+/**
+ * Handles the Get request made to the server
+ * @param  {object} route Express Route object
+ * @param  {JSON} config Master configuration JSON
+ */
 exports.get = function (route, config) {
     var git = require("./git");
-    //Get Request Handling Area
     route.get("/", function (req, res) {
         res.render("pages/home", {
 
@@ -26,9 +30,14 @@ exports.get = function (route, config) {
     });
     return route;
 };
+
+/**
+ * Handles the Post request made to the server
+ * @param  {object} route Express Route object
+ * @param  {JSON} config Master configuration JSON
+ */
 exports.post = function (route, config) {
     var git = require("./git");
-    //Post Request Handling Area
     route.post("/login", function (req, res) {
         var userDB = require("../dbSchema/user");
         var userCollection = userDB.users(config);
@@ -38,9 +47,21 @@ exports.post = function (route, config) {
     });
     route.post("/signup", function (req, res) {
         var userDB = require("../dbSchema/user");
-        var userCollection = userDB.users(config);
-        res.render("pages/signup", {
+        var data = {
+            name:req.body.name,
+            userName:req.body.userName,
+            eMail:req.body.eMail,
+            password:req.body.password
+        };
+        userDB.createUser(req,res,data,config,function(req,res,config){
+            if(config.exist){
+                //TODO Existing User
+                res.send("User Exist");
+            }else{
+                res.render("pages/signup", {
 
+                });
+            }
         });
     });
     route.post("/forgot", function (req, res) {

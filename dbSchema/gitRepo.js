@@ -1,3 +1,7 @@
+/**
+ * Schema building for gitRepo DB
+ * @param  {JSON} config Master Configuration JSON
+ */
 exports.gitRepo = function (config) {
     var mongoose = require("mongoose"),
         Schema = mongoose.Schema,
@@ -42,7 +46,14 @@ exports.gitRepo = function (config) {
     });
     return mongoose.model("gitRepo", gitRepo, "gitRepo");
 };
-
+/**
+ * Create repository record in DB
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} data Input data
+ * @param  {JSON} config Master Configuration JSON
+ * @param  {function} next Callback function(req,res,config)
+ */
 exports.gitRepoCreate = function (req, res, data, config, next) {
     if ((data.repo != "" && data.repo != null && data.repo != undefined) &&
         (data.user != "" && data.user != null && data.user != undefined) &&
@@ -75,10 +86,18 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
     }
 };
 
+/**
+ * Deletes Git repository recored from DB
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {{repo:String,}} data Input data
+ * @param  {JSON} config Master Configuration JSON
+ * @param  {function} next Callback function(req,res,config)
+ */
 exports.gitRepoDelete = function (req, res, data, config, next) {
     if (data.repo != "" && data.repo != null && data.repo != undefined) {
         if (config.database == "Mongo") {
-            var gitRepo = this.gitRepo(config);
+            var gitRepo = exports.gitRepo(config);
             gitRepo.deleteOne({
                 logicName: data.repo.toUpperCase()
             }, function (err) {

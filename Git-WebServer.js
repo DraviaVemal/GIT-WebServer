@@ -1,3 +1,25 @@
+/**
+ * Master Configuration JSON For more information check document at
+ * //TODO
+ * @typedef {Object} JSON.config
+ * @property {String} salt Encription Key (required)
+ * @property {Integer} port Server Port Number - Default : 80
+ * @property {Integer} gitURL Git Specific URL - Default : /git
+ * @property {Integer} repoDir Git repository folder name - Default : repos
+ * @property {Integer} repositories List of repository JSON objects - Default : {}
+ * @property {Integer} defaultUsers Array of user funcion object - Default : []
+ * @property {Integer} appName Application Name - Default : Git-WebServer
+ * @property {Integer} logging console logging control - Default : true
+ * @property {Integer} dbName Name of the Database - Default : GitWebServer
+ * @property {Integer} dbURL URL to reach Database Server - Default : localhost
+ * @property {Integer} dbUser Database access username - Default : ""
+ * @property {Integer} dbPassword Database access password - Default : ""
+ * @property {Integer} database Type of database you choose - Default : "Mongo"
+ */
+/**
+ * Initialize Git-WebServer with provided configuration details
+ * @param  {JSON.config} Config
+ */
 exports.server = function (Config) {
     if ((Config.salt != undefined) &&
         (Config.salt != "") &&
@@ -11,7 +33,6 @@ exports.server = function (Config) {
         config.defaultUsers = config.defaultUsers || [];
         config.appName = config.appName || "Git-WebServer";
         config.logging = config.logging || true;
-        config.defaultUsers = config.defaultUsers || [];
         config.dbName = config.dbName || "GitWebServer";
         config.dbURL = config.dbURL || "localhost";
         config.dbUser = config.dbUser || "";

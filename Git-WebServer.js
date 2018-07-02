@@ -133,6 +133,7 @@ exports.server = function (Config) {
         expressServer.use(express.query());
         if (config.logging) expressServer.use(logging("dev", route));
         else expressServer.use(logging("tiny", route));
+        expressServer.use(request.staticFile(route, config));
         expressServer.use(request.get(route, config));
         expressServer.use(request.post(route, config));
         //Error Handling

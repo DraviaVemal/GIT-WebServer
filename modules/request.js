@@ -1,4 +1,12 @@
 /**
+ * Handle the static file like CSS,JS,etc...
+ * @param  {object} route Express Route object
+ * @param  {JSON} config Master configuration JSON
+ */
+exports.staticFile = function (route, config) {
+    
+};
+/**
  * Handles the Get request made to the server
  * @param  {object} route Express Route object
  * @param  {JSON} config Master configuration JSON

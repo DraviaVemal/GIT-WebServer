@@ -4,7 +4,7 @@
  * @param  {JSON} config Master configuration JSON
  */
 exports.staticFile = function (route, config) {
-    
+    return route;
 };
 /**
  * Handles the Get request made to the server

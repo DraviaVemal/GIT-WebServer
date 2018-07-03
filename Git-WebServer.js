@@ -55,6 +55,7 @@ exports.server = function (Config) {
         config.sslProperties.key = config.sslProperties.key || "";
         config.sslProperties.cert = config.sslProperties.cert || "";
         config.sslProperties.ca = config.sslProperties.ca || "";
+        config.dirname = __dirname;
         if(config.logging){
             console.log("Git-WebServer is initailising with below configuration");
             console.log(config);

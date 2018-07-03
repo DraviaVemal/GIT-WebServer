@@ -4,7 +4,31 @@
  * @param  {JSON} config Master configuration JSON
  */
 exports.staticFile = function (route, config) {
-    
+    route.get("/bootstrap.css", function (req, res) {
+        res.sendFile(config.dirname + "/public/css/bootstrap.min.css");
+    });
+    route.get("/reboot.css", function (req, res) {
+        res.sendFile(config.dirname + "/public/css/bootstrap-reboot.min.css");
+    });
+    route.get("/grid.css", function (req, res) {
+        res.sendFile(config.dirname + "/public/css/bootstrap-grid.min.css");
+    });
+    route.get("/home.css", function (req, res) {
+        res.sendFile(config.dirname + "/public/css/home.min.css");
+    });
+    route.get("/jquery.js", function (req, res) {
+        res.sendFile(config.dirname + "/public/js/jquery-3.3.1.min.js");
+    });
+    route.get("/bundle.js", function (req, res) {
+        res.sendFile(config.dirname + "/public/js/bootstrap.bundle.min.js");
+    });
+    route.get("/bootstrap.js", function (req, res) {
+        res.sendFile(config.dirname + "/public/js/bootstrap.min.js");
+    });
+    route.get("/home.js", function (req, res) {
+        res.sendFile(config.dirname + "/public/js/home.js");
+    });
+    return route;
 };
 /**
  * Handles the Get request made to the server

@@ -139,6 +139,7 @@ exports.loginUser = function (req, res, data, config, next) {
                         );
                         if (validUser) {
                             config.valid = true;
+                            config.result = result;
                             next(req, res, config);
                         } else {
                             config.valid = false;

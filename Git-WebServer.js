@@ -176,6 +176,7 @@ exports.server = function (Config) {
         expressServer.use(request.staticFile(route, config));
         expressServer.use(request.get(route, config));
         expressServer.use(request.post(route, config));
+        expressServer.use(request.gitRequest(route, config));
         //Error Handling
         expressServer.use(function (req, res) {
             res.status(404);

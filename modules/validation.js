@@ -32,8 +32,6 @@ exports.loginValidation = function (req, res, config) {
         );
     } else{
         if(req.cookies[config.advProperties.cookieChecksumName]) res.clearCookie(config.advProperties.cookieChecksumName);
-        if(req.cookies[config.advProperties.cookieChecksumName]) res.clearCookie(config.advProperties.cookieChecksumName);
-        if(req.cookies[config.advProperties.cookieChecksumName]) res.clearCookie(config.advProperties.cookieChecksumName);
         return false;
     }
 };
@@ -53,11 +51,4 @@ exports.loginInitialisation = function (req, res, config) {
         sameSite:true,
         secure: config.enableSSL
     });
-    // res.cookie('UID', uidGenerator.generateUniqueId(), {
-    //     httpOnly: true
-    // });
-    // res.cookie('BID', uidGenerator.generateUniqueId(), {
-    //     maxAge: 1000 * 60 * 60 * 24 * 7,
-    //     httpOnly: true
-    // });
 };

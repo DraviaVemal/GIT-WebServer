@@ -1,4 +1,11 @@
 /**
+ * Advanced Security Setting - Don't touch if you are not sure
+ * @typedef {Object} JSON.adv
+ * @property {String} sessionName Session ID name - Default : "SID"
+ * @property {String} cookieChecksumName verify session checksum - Default : "SSID"
+ * @property {String} criptoSalt checksum hash salt value - Default : 10
+ */
+/**
  * HTTPS SSL certificate file details
  * @typedef {Object} JSON.ssl
  * @property {String} pemKey pem key file path - Default : ""
@@ -25,6 +32,7 @@
  * @property {String} database Type of database you choose - Default : "Mongo"
  * @property {bool} enableSSL Enable SSL Connection - Default : false
  * @param {JSON.ssl} sslProperties SSL certificate properties - Default : {}
+ * @param {JSON.adv} advProperties SSL certificate properties - Default : {}
  */
 /**
  * Initialize Git-WebServer with provided configuration details
@@ -55,8 +63,12 @@ exports.server = function (Config) {
         config.sslProperties.key = config.sslProperties.key || "";
         config.sslProperties.cert = config.sslProperties.cert || "";
         config.sslProperties.ca = config.sslProperties.ca || "";
+        config.advProperties = config.advProperties || {};
+        config.advProperties.sessionName = config.advProperties.sessionName || "SID";
+        config.advProperties.cookieChecksumName = config.advProperties.cookieChecksumName || "SSID";
+        config.advProperties.criptoSalt = config.advProperties.criptoSalt || 10;
         config.dirname = __dirname;
-        if(config.logging){
+        if (config.logging) {
             console.log("Git-WebServer is initailising with below configuration");
             console.log(config);
         }
@@ -77,6 +89,34 @@ exports.server = function (Config) {
         var expressServer = express();
         if (!fileSystem.existsSync("./" + config.repoDir)) {
             fileSystem.mkdirSync("./" + config.repoDir);
+        }
+        var sslFiles = {};
+        if(config.enableSSL){
+            var validation = require("./modules/validation");
+            if (validation.variableNotEmpty(config.sslProperties.key) &&
+                validation.variableNotEmpty(config.sslProperties.cert) &&
+                validation.variableNotEmpty(config.sslProperties.ca)) {
+                sslFiles = {
+                    key: fileSystem.readFileSync(config.sslProperties.key),
+                    cert: fileSystem.readFileSync(config.sslProperties.cert),
+                    ca: fileSystem.readFileSync(config.sslProperties.ca)
+                };
+            } else if (validation.variableNotEmpty(config.sslProperties.pemKey) &&
+                validation.variableNotEmpty(config.sslProperties.pemCert)) {
+                sslFiles = {
+                    key: fileSystem.readFileSync(config.sslProperties.pemKey),
+                    cert: fileSystem.readFileSync(config.sslProperties.pemCert)
+                };
+            }
+            if (!sslFiles.key) {
+                config.enableSSL = false;
+                if(config.logging){
+                    console.log("----------------------- Warning -----------------------");
+                    console.log("No valid certificate files provided to enable ssl");
+                    console.log("Disabling 'enableSSL' flag internally.");
+                    console.log("-------------------------------------------------------");
+                }
+            }
         }
         var sessionDatabaseConnection;
         if (config.database == "Mongo") {
@@ -106,15 +146,14 @@ exports.server = function (Config) {
                 resave: false,
                 store: sessionDatabaseConnection,
                 saveUninitialized: false,
-                name: "SID",
+                name: config.advProperties.sessionName,
                 rolling: true,
                 proxy: false,
                 cookie: {
                     path: "/",
                     httpOnly: true,
-                    secure: false,
-                    sameSite: true,
-                    maxAge: 60000
+                    secure: config.enableSSL,
+                    sameSite: true
                 }
             })
         );
@@ -151,46 +190,21 @@ exports.server = function (Config) {
             });
         });
         if (config.enableSSL) {
-            var validation = require("./modules/validation");
-            var sslFiles = {};
-            if (!validation.variableNotEmpty(config.sslProperties.key) &&
-                !validation.variableNotEmpty(config.sslProperties.cert) &&
-                !validation.variableNotEmpty(config.sslProperties.ca)) {
-                sslFiles = {
-                    key: fileSystem.readFileSync(config.sslProperties.key),
-                    cert: fileSystem.readFileSync(config.sslProperties.cert),
-                    ca: fileSystem.readFileSync(config.sslProperties.ca)
-                };
-            } else if (!validation.variableNotEmpty(config.sslProperties.pemKey) &&
-                !validation.variableNotEmpty(config.sslProperties.pemCert)) {
-                sslFiles = {
-                    key: fileSystem.readFileSync(config.sslProperties.pemKey),
-                    cert: fileSystem.readFileSync(config.sslProperties.pemCert)
-                };
-            }
-            if (sslFiles.key) {
-                //Starts HTTPS Server and a HTTP server(Redirect) when cert files present
-                var expressRedirectServer = express();
-                expressRedirectServer.get("*", function (req, res) {
-                    res.redirect("https://"+req.host+req.originalUrl);
-                });
-                expressRedirectServer.use(function (req, res) {
-                    res.status(500);
-                    res.send("Server Error");
-                });
-                expressRedirectServer.listen(80, function () {
-                    if (config.logging) console.log(config.appName + "HTTPS redirect Running at Port : 80");
-                });
-                https.createServer(sslFiles, expressServer).listen(443, function () {
-                    if (config.logging) console.log(config.appName + " Running at Port : 443");
-                });
-            } else {
-                //starts standard HTTP server
-                expressServer.listen(config.port, function () {
-                    if (config.logging) console.log(config.appName + " Running at Port : " + config.port);
-                });
-            }
-
+            //Starts HTTPS Server and a HTTP server(Redirect) when cert files present
+            var expressRedirectServer = express();
+            expressRedirectServer.get("*", function (req, res) {
+                res.redirect("https://" + req.host + req.originalUrl);
+            });
+            expressRedirectServer.use(function (req, res) {
+                res.status(500);
+                res.send("Server Error");
+            });
+            expressRedirectServer.listen(80, function () {
+                if (config.logging) console.log(config.appName + "HTTPS redirect Running at Port : 80");
+            });
+            https.createServer(sslFiles, expressServer).listen(443, function () {
+                if (config.logging) console.log(config.appName + " Running at Port : 443");
+            });
         } else {
             //starts standard HTTP server
             expressServer.listen(config.port, function () {

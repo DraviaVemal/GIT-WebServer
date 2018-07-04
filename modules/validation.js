@@ -27,10 +27,15 @@ exports.loginValidation = function (req, res, config) {
     if (req.session.active) {
         var bcrypt = require("bcryptjs");
         return bcrypt.compareSync(
-            req.cookie.SSID,
-            req.session.id + config.salt
+            req.session.id + config.salt,
+            req.cookies[config.advProperties.cookieChecksumName]
         );
-    } else return false;
+    } else{
+        if(req.cookies[config.advProperties.cookieChecksumName]) res.clearCookie(config.advProperties.cookieChecksumName);
+        if(req.cookies[config.advProperties.cookieChecksumName]) res.clearCookie(config.advProperties.cookieChecksumName);
+        if(req.cookies[config.advProperties.cookieChecksumName]) res.clearCookie(config.advProperties.cookieChecksumName);
+        return false;
+    }
 };
 
 /**
@@ -42,15 +47,17 @@ exports.loginValidation = function (req, res, config) {
 exports.loginInitialisation = function (req, res, config) {
     var uidGenerator = require('node-unique-id-generator');
     var bcrypt = require("bcryptjs");
-    res.cookie('SSID', bcrypt.hashSync(req.session.id + config.salt, 10), {
+    res.cookie(config.advProperties.cookieChecksumName, bcrypt.hashSync(req.session.id + config.salt, config.advProperties.criptoSalt), {
         maxAge: 1000 * 60 * 60 * 24,
-        httpOnly: true
+        httpOnly: true,
+        sameSite:true,
+        secure: config.enableSSL
     });
-    res.cookie('UID', uidGenerator.generateUniqueId(), {
-        httpOnly: true
-    });
-    res.cookie('BID', uidGenerator.generateUniqueId(), {
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        httpOnly: true
-    });
+    // res.cookie('UID', uidGenerator.generateUniqueId(), {
+    //     httpOnly: true
+    // });
+    // res.cookie('BID', uidGenerator.generateUniqueId(), {
+    //     maxAge: 1000 * 60 * 60 * 24 * 7,
+    //     httpOnly: true
+    // });
 };

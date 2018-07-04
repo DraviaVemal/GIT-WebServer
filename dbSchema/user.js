@@ -70,6 +70,8 @@ exports.createUser = function (req, res, data, config, next) {
         validation.variableNotEmpty(data.userName, 3) &&
         validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ &&
         validation.variableNotEmpty(data.password, 8)) {
+        data.eMail = data.eMail.toUpperCase();
+        data.userName = data.userName.toUpperCase();
         if (config.database == "Mongo") {
             var users = exports.users(config);
             users.create(data, function (err) {
@@ -106,19 +108,21 @@ exports.createUser = function (req, res, data, config, next) {
  */
 exports.loginUser = function (req, res, data, config, next) {
     var validation = require("../modules/validation");
-    if ((validation.variableNotEmpty(data.userName, 3) ||
-            validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ ) &&
-        validation.variableNotEmpty(data.password, 8)){
+    if ((validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ ) &&
+        validation.variableNotEmpty(data.password, 8)) {
+        if (data.eMail) data.eMail = data.eMail.toUpperCase();
+        if (data.userName) data.userName = data.userName.toUpperCase();
         if (config.database == "Mongo") {
             var users = exports.users(config);
             var query = {
-                userName: req.body.userName
+                $or: [{
+                        eMail: req.body.eMail
+                    },
+                    {
+                        userName: req.body.eMail
+                    }
+                ]
             };
-            if (validation.variableNotEmpty(data.eMail)) {
-                query = {
-                    eMail: req.body.eMail
-                };
-            }
             users.findOne(query, function (err, result) {
                 if (err) {
                     if (config.logging) {
@@ -127,18 +131,24 @@ exports.loginUser = function (req, res, data, config, next) {
                     res.status(503);
                     res.send();
                 } else {
-                    var bcrypt = require("bcryptjs");
-                    var validUser = bcrypt.compareSync(
-                        req.body.password,
-                        result.password
-                    );
-                    if (validUser) {
-                        config.valid = true;
-                        next(req, res, config);
+                    if (result) {
+                        var bcrypt = require("bcryptjs");
+                        var validUser = bcrypt.compareSync(
+                            req.body.password,
+                            result.password
+                        );
+                        if (validUser) {
+                            config.valid = true;
+                            next(req, res, config);
+                        } else {
+                            config.valid = false;
+                            next(req, res, config);
+                        }
                     } else {
                         config.valid = false;
                         next(req, res, config);
                     }
+
                 }
             });
         }

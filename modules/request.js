@@ -40,39 +40,59 @@ exports.get = function (route, config) {
     route.get("/", function (req, res) {
         var validation = require("./validation");
         if (validation.loginValidation(req, res, config)) {
-            res.render("pages/home", {
-                //TODO : Post Login Page
+            res.render("user/home", {
+                appName: config.appName
             });
         } else {
-            res.render("pages/home", {
-
+            var handlebarLayout = "public";
+            if (req.body.opti) {
+                handlebarLayout = false;
+            }
+            res.render("pages/login", {
+                layout: handlebarLayout,
+                appName: config.appName
             });
         }
     });
     route.get("/login", function (req, res) {
-        if (req.cookie.SSID) {
+        if (req.cookies[config.advProperties.cookieChecksumName]) {
             res.redirect("/");
         } else {
+            var handlebarLayout = "public";
+            if (req.body.opti) {
+                handlebarLayout = false;
+            }
             res.render("pages/login", {
-
+                layout: handlebarLayout,
+                appName: config.appName
             });
         }
     });
     route.get("/signup", function (req, res) {
-        if (req.cookie.SSID) {
+        if (req.cookies[config.advProperties.cookieChecksumName]) {
             res.redirect("/");
         } else {
+            var handlebarLayout = "public";
+            if (req.body.opti) {
+                handlebarLayout = false;
+            }
             res.render("pages/signup", {
-
+                layout: handlebarLayout,
+                appName: config.appName
             });
         }
     });
     route.get("/forgot", function (req, res) {
-        if (req.cookie.SSID) {
+        if (req.cookies[config.advProperties.cookieChecksumName]) {
             res.redirect("/");
         } else {
-            res.render("page/forgotPass", {
-
+            var handlebarLayout = "public";
+            if (req.body.opti) {
+                handlebarLayout = false;
+            }
+            res.render("pages/forgot", {
+                layout: handlebarLayout,
+                appName: config.appName
             });
         }
     });
@@ -92,18 +112,19 @@ exports.post = function (route, config) {
     route.post("/login", function (req, res) {
         var userDB = require("../dbSchema/user");
         var data = {
-            userName: req.body.userName,
-            eMail: req.body.eMail,
+            eMail: req.body.eMail,//or userName
             password: req.body.password
         };
         userDB.loginUser(req, res, data, config, function (req, res, config) {
             if (config.valid) {
+                console.log(req.session.id);
                 req.session.regenerate(function (err) {
                     if (err) {
                         if (config.logging) console.log(err);
                         res.status(403);
                         res.send();
                     } else {
+                        console.log(req.session.id);
                         req.session.active = true;
                         req.session.access = {};
                         var validation = require("./validation");
@@ -112,8 +133,10 @@ exports.post = function (route, config) {
                     }
                 });
             } else {
+                var message = '<div class="alert alert-info" role="alert"><strong>Invalid UserID/Password</strong></div>';
                 res.render("pages/login", {
-
+                    message: message ,
+                    appName: config.appName
                 });
             }
         });
@@ -124,18 +147,37 @@ exports.post = function (route, config) {
             name: req.body.name,
             userName: req.body.userName,
             eMail: req.body.eMail,
-            password: req.body.password
+            password: req.body.password,
+            rPassword: req.body.rPassword,
+            appName: config.appName
         };
-        userDB.createUser(req, res, data, config, function (req, res, config) {
-            if (config.exist) {
-                //TODO Existing User
-                res.send("User Exist");
-            } else {
-                res.render("pages/signup", {
-
-                });
-            }
-        });
+        var message = "";
+        if (data.password === data.rPassword) {
+            userDB.createUser(req, res, data, config, function (req, res, config) {
+                if (config.exist) {
+                    message = '<div class="alert alert-info" role="alert"><strong>User already exist!</strong></div>';
+                    res.render("pages/signup", {
+                        message: message,
+                        appName: config.appName
+                    });
+                } else {
+                    message = '<div class="alert alert-info" role="alert"><strong>User registration successful</strong></div>';
+                    res.render("pages/login", {
+                        message: message,
+                        appName: config.appName
+                    });
+                }
+            });
+        } else {
+            message = '<div class="alert alert-info" role="alert"><strong>Password Mis-Match</strong></div>';
+            res.render("pages/signup", {
+                name: req.body.name,
+                userName: req.body.userName,
+                eMail: req.body.eMail,
+                message: message,
+                appName: config.appName
+            });
+        }
     });
     route.post("/forgot", function (req, res) {
         res.render("page/forgotPass", {

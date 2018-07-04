@@ -1,1 +1,23 @@
-login
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-8">
+            {{>home}}
+        </div>
+        <div class="col-sm-4">
+            <form method="POST" action="/login">
+                <div class="form-group">
+                    <label for="eMail">E-Mail (or) Username : </label>
+                    <input type="text" class="form-control" name="eMail" aria-describedby="eMail" required> {{!--
+                    <small id="eMail" class="form-text text-muted">E-Mail (or) Username</small> --}}
+                </div>
+                <div class="form-group">
+                    <label for="password">Password : </label>
+                    <input type="password" class="form-control" name="password" aria-describedby="password" required> {{!--
+                    <small id="password" class="form-text text-muted">Password</small> --}}
+                </div>
+                {{{message}}}
+                <button type="submit" name="login" class="btn btn-primary btn-block">Login</button>
+            </form>
+        </div>
+    </div>
+</div>

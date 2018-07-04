@@ -1,1 +1,38 @@
-signup
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-8">
+            {{>home}}
+        </div>
+        <div class="col-sm-4">
+            <form method="POST" action="/signup">
+                <div class="form-group">
+                    <label for="name">Full Name : </label>
+                    <input type="text" class="form-control" name="name" value="{{name}}" aria-describedby="name" required> {{!--
+                    <small id="name" class="form-text text-muted">E-Mail (or) Username</small> --}}
+                </div>
+                <div class="form-group">
+                    <label for="eMail">E-Mail : </label>
+                    <input type="email" class="form-control" name="eMail" value="{{eMail}}" aria-describedby="eMail" required> {{!--
+                    <small id="eMail" class="form-text text-muted">E-Mail (or) Username</small> --}}
+                </div>
+                <div class="form-group">
+                    <label for="userName">Username : </label>
+                    <input type="text" class="form-control" name="userName" value="{{userName}}" aria-describedby="userName" required> {{!--
+                    <small id="userName" class="form-text text-muted">E-Mail (or) Username</small> --}}
+                </div>
+                <div class="form-group">
+                    <label for="password">Password : </label>
+                    <input type="password" class="form-control" name="password" aria-describedby="password" required> {{!--
+                    <small id="password" class="form-text text-muted">Password</small> --}}
+                </div>
+                <div class="form-group">
+                    <label for="rPassword">Re-Password : </label>
+                    <input type="password" class="form-control" name="rPassword" aria-describedby="rPassword" required> {{!--
+                    <small id="rPassword" class="form-text text-muted">Password</small> --}}
+                </div>
+                {{{message}}}
+                <button type="submit" name="login" class="btn btn-primary btn-block">Register</button>
+            </form>
+        </div>
+    </div>
+</div>

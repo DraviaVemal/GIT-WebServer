@@ -32,6 +32,10 @@ exports.users = function (config) {
             unique: true,
             required: true
         },
+        mailVerified: {
+            type: Boolean,
+            default:false
+        },
         password: {
             type: String,
             required: true

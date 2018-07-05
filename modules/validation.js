@@ -24,7 +24,7 @@ exports.variableNotEmpty = function (variable, Length, config) {
  * @param  {JSON} config Master Configuration JSON
  */
 exports.loginValidation = function (req, res, config) {
-    if (req.session.active) {
+    if (req.session.active && req.cookies[config.advProperties.cookieChecksumName]) {
         var bcrypt = require("bcryptjs");
         return bcrypt.compareSync(
             req.session.id + config.salt,

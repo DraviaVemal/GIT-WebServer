@@ -77,7 +77,7 @@ exports.get = function (route, config) {
             });
         }
     });
-    route.get("/forgot", function (req, res) {
+    route.get("/forgotPass", function (req, res) {
         if (req.cookies[config.advProperties.cookieChecksumName]) {
             res.redirect("/");
         } else {
@@ -85,7 +85,7 @@ exports.get = function (route, config) {
             if (req.body.opti) {
                 handlebarLayout = false;
             }
-            res.render("pages/forgot", {
+            res.render("pages/forgotPass", {
                 layout: handlebarLayout,
                 appName: config.appName
             });
@@ -113,6 +113,21 @@ exports.get = function (route, config) {
                 handlebarLayout = false;
             }
             res.render("user/profile", {
+                layout: handlebarLayout,
+                appName: config.appName,
+                userName: req.session.userData.name
+            });
+        } else {
+            unAuthorisedRequest(config, res);
+        }
+    });
+    route.get("/createRepo", function (req, res) {
+        if (validation.loginValidation(req, res, config)) {
+            var handlebarLayout = "default";
+            if (req.body.opti) {
+                handlebarLayout = false;
+            }
+            res.render("user/createRepo", {
                 layout: handlebarLayout,
                 appName: config.appName,
                 userName: req.session.userData.name

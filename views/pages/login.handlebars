@@ -1,13 +1,14 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-sm-8">
-            {{>home}}
+            {{>siteIntro}}
+            <a href="/signup">New User</a>
         </div>
         <div class="col-sm-4">
             <form method="POST" action="/login">
                 <div class="form-group">
                     <label for="eMail">E-Mail (or) Username : </label>
-                    <input type="text" class="form-control" name="eMail" aria-describedby="eMail" required> {{!--
+                    <input type="text" class="form-control" name="eMail" aria-describedby="E-Mail" required> {{!--
                     <small id="eMail" class="form-text text-muted">E-Mail (or) Username</small> --}}
                 </div>
                 <div class="form-group">
@@ -15,6 +16,7 @@
                     <input type="password" class="form-control" name="password" aria-describedby="password" required> {{!--
                     <small id="password" class="form-text text-muted">Password</small> --}}
                 </div>
+                <a href="/forgotPass">Forgot Password?</a>
                 {{{message}}}
                 <button type="submit" name="login" class="btn btn-primary btn-block">Login</button>
             </form>

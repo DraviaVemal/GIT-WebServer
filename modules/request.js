@@ -31,8 +31,8 @@ exports.staticFile = function (route, config) {
  */
 exports.get = function (route, config) {
     var git = require("./git");
+    var validation = require("./validation");
     route.get("/", function (req, res) {
-        var validation = require("./validation");
         if (validation.loginValidation(req, res, config)) {
             res.render("user/home", {
                 appName: config.appName,
@@ -77,7 +77,7 @@ exports.get = function (route, config) {
             });
         }
     });
-    route.get("/forgot", function (req, res) {
+    route.get("/forgotPass", function (req, res) {
         if (req.cookies[config.advProperties.cookieChecksumName]) {
             res.redirect("/");
         } else {
@@ -85,10 +85,55 @@ exports.get = function (route, config) {
             if (req.body.opti) {
                 handlebarLayout = false;
             }
-            res.render("pages/forgot", {
+            res.render("pages/forgotPass", {
                 layout: handlebarLayout,
                 appName: config.appName
             });
+        }
+    });
+    route.get("/setting", function (req, res) {
+        if (validation.loginValidation(req, res, config)) {
+            var handlebarLayout = "default";
+            if (req.body.opti) {
+                handlebarLayout = false;
+            }
+            res.render("user/setting", {
+                layout: handlebarLayout,
+                appName: config.appName,
+                userName: req.session.userData.name
+            });
+        } else {
+            unAuthorisedRequest(config, res);
+        }
+    });
+    route.get("/profile", function (req, res) {
+        if (validation.loginValidation(req, res, config)) {
+            var handlebarLayout = "default";
+            if (req.body.opti) {
+                handlebarLayout = false;
+            }
+            res.render("user/profile", {
+                layout: handlebarLayout,
+                appName: config.appName,
+                userName: req.session.userData.name
+            });
+        } else {
+            unAuthorisedRequest(config, res);
+        }
+    });
+    route.get("/createRepo", function (req, res) {
+        if (validation.loginValidation(req, res, config)) {
+            var handlebarLayout = "default";
+            if (req.body.opti) {
+                handlebarLayout = false;
+            }
+            res.render("user/createRepo", {
+                layout: handlebarLayout,
+                appName: config.appName,
+                userName: req.session.userData.name
+            });
+        } else {
+            unAuthorisedRequest(config, res);
         }
     });
     route.get("/logout", function (req, res) {
@@ -115,6 +160,7 @@ exports.get = function (route, config) {
  */
 exports.post = function (route, config) {
     var git = require("./git");
+    var validation = require("./validation");
     route.post("/login", function (req, res) {
         var userDB = require("../dbSchema/user");
         var data = {
@@ -135,7 +181,6 @@ exports.post = function (route, config) {
                             name: config.result.name,
                             eMail: config.result.eMail,
                         };
-                        var validation = require("./validation");
                         validation.loginInitialisation(req, res, config);
                         res.redirect("/");
                     }
@@ -193,15 +238,17 @@ exports.post = function (route, config) {
         });
     });
     route.post("/createRepo", function (req, res) {
-        var validation = require("./validation");
         if (validation.loginValidation(req, res, config)) {
             git.gitInit(req, res, config);
+        }else{
+            unAuthorisedRequest(config, res);
         }
     });
     route.post("/deleteRepo", function (req, res) {
-        var validation = require("./validation");
         if (validation.loginValidation(req, res, config)) {
             git.deleteRepo(req, res, config);
+        }else{
+            unAuthorisedRequest(config, res);
         }
     });
     return route;
@@ -223,3 +270,9 @@ exports.gitRequest = function (route, config) {
     });
     return route;
 };
+
+function unAuthorisedRequest(config, res) {
+    if (config.logging)
+        console.log("Un-Authorised access request redirected");
+    res.redirect("/");
+}

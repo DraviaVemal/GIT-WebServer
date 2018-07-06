@@ -1,33 +1,37 @@
-<form action="/createRepo" method="POST"></form>
-<div class="col-md-6">
-    <div class="col-sm-8">
-        <div class="form-group text-center">
-            <label for="repo">Repository Name :</label>
-            <input type="text" class="form-control" name="repo" aria-describedby="Repository Name" required> {{!--
-            <small id="repo" class="form-text text-muted">Help text</small> --}}
+<form action="/createRepo" method="POST" class="col-md-12">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Repository Name : *</span>
+                </div>
+                <input type="text" class="form-control" name="repo" aria-describedby="Repository Name" required>
+            </div>
+            <div class="form-check">
+                <label class="form-check-label">
+                    <input type="radio" class="form-check-input" name="type" value="public" checked required> Public
+                </label>
+                <small class="form-text text-muted">Will be visible to all registered user.</small>
+            </div>
+            <div class="form-check">
+                <label class="form-check-label">
+                    <input type="radio" class="form-check-input" name="type" value="private" required> Private
+                </label>
+                <small class="form-text text-muted">Will be visible to user you choose.</small>
+            </div>
         </div>
-        <div class="form-check">
-            <label class="form-check-label">
-                <input type="radio" class="form-check-input" name="type" value="public" required> Public
-            </label>
-            <small class="form-text text-muted">Will be visible to all registered user.</small>
-        </div>
-        <div class="form-check">
-            <label class="form-check-label">
-                <input type="radio" class="form-check-input" name="type" value="private" required> Private
-            </label>
-            <small class="form-text text-muted">Will be visible to user you choose.</small>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="repoDescription">Project Descripton : *</label>
+                <input type="text" class="form-control" name="repoDescription" aria-describedby="Repo Description" required>
+            </div>
+            <div class="form-group">
+                <label for="repoReadMe">Read Me File :</label>
+                <textarea class="form-control" name="repoReadMe" rows="5"></textarea>
+            </div>
+            <div class="pull-right">
+                <button class="btn btn-m btn-success" type="submit" name="createRepo">Create</button>
+            </div>
         </div>
     </div>
-</div>
-<div class="col-md-6">
-    <div class="form-group">
-        <label for="repoDescription">Project Descripton : </label>
-        <input type="text" class="form-control" name="repoDescription" aria-describedby="Repo Description" required>
-    </div>
-    <div class="form-group">
-        <label for="repoReadMe">Read Me File :</label>
-        <textarea class="form-control" name="repoReadMe" rows="5"></textarea>
-    </div>
-</div>
 </form>

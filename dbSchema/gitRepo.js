@@ -26,7 +26,15 @@ exports.gitRepo = function (config) {
             unique: true,
             required: true
         },
-        user: {
+        createdUser: {
+            type: String,
+            required: true
+        },
+        private: {
+            type: Boolean,
+            required: true
+        },
+        description: {
             type: String,
             required: true
         },
@@ -50,34 +58,34 @@ exports.gitRepo = function (config) {
  * Create repository record in DB
  * @param  {object} req Request Object
  * @param  {object} res Response Object
- * @param  {{repo:String,user:String,url:String}} data Input data
+ * @param  {{repo:String,createdUser:String,url:String,private:Boolean,description:String}} data Input data
  * @param  {JSON} config Master Configuration JSON
  * @param  {function} next Callback function(req,res,config)
  */
 exports.gitRepoCreate = function (req, res, data, config, next) {
     var validation = require("../modules/validation");
     if (validation.variableNotEmpty(data.repo, 4) &&
-        validation.variableNotEmpty(data.user) &&
-        validation.variableNotEmpty(data.url)) {
+        validation.variableNotEmpty(data.createdUser) &&
+        validation.variableNotEmpty(data.url) &&
+        validation.variableNotEmpty(data.description)) {
         if (config.database == "Mongo") {
             var gitRepo = this.gitRepo(config);
-            gitRepo.create({
-                repo: data.repo,
-                logicName: data.repo.toUpperCase(),
-                user: data.user,
-                url: data.url,
-            }, function (err) {
+            data.logicName = data.repo.toUpperCase();
+            gitRepo.create(data, function (err, gitRepo) {
                 if (err) {
                     if (config.logging) {
-                        console.log(err);
                         if (err.code == 11000) {
-                            res.send("exist");
+                            res.send("exist"); //TODO Existing repo message
                         } else {
+                            console.log(err);
                             res.status(503);
                             res.send();
                         }
                     }
-                } else next(req, res, config);
+                } else {
+                    config.gitRepo = gitRepo;
+                    next(req, res, config);
+                }
             });
         }
     } else {
@@ -116,5 +124,27 @@ exports.gitRepoDelete = function (req, res, data, config, next) {
         if (config.logging) console.log("Git Delete Repo Insert operation failed due to missing data");
         res.status(403);
         res.send();
+    }
+};
+/**
+ * findOne mongoose function will return result with top one match
+ * @param  {object} query query object passed to find the results 
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} config Master Configuration JSON
+ * @param  {function} next Callback function(req,res,config)
+ */
+exports.findOne = function (query, req, res, config, next) {
+    if (config.database == "Mongo") {
+        var gitRepo = exports.gitRepo(config);
+        gitRepo.findOne(query, function (err, result) {
+            if (err) {
+                if (config.logging) {
+                    console.log(err);
+                    res.status(503);
+                    res.send();
+                }
+            } else next(req, res, config, result);
+        });
     }
 };

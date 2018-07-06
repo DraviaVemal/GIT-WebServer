@@ -155,12 +155,17 @@ exports.postUploadPack = function (req, res, config) {
  * @param  {JSON} config Master Configuration JSON
  */
 exports.gitInit = function (req, res, config) {
-    if (req.body.repo != undefined && req.body.repo != "" && req.body.repo != null) {
+    var validation = require("./validation");
+    if (validation.variableNotEmpty(req.body.repo)) {
         var gitDB = require("../dbSchema/gitRepo");
+        var privateRepo = false;
+        if (req.body.type == "private") privateRepo = true;
         var data = {
             repo: req.body.repo,
-            user: "user", //TODO
-            url: "url" //TODO
+            createdUser: req.session.userData.userName,
+            url: req.protocol + "://" + req.host + config.gitURL + "/" + req.body.repo,
+            private: privateRepo,
+            description: req.body.repoDescription
         };
         gitDB.gitRepoCreate(req, res, data, config, function (req, res, config) {
             var fileSystem = require("fs");
@@ -169,10 +174,11 @@ exports.gitInit = function (req, res, config) {
             }
             var simpleGit = require('simple-git')(config.repoDir + "/" + req.body.repo + "/");
             simpleGit.init(true, function (err) {
-                if (!err) res.send("done");
-                else {
+                if (err) {
                     if (config.logging) console.log(err);
-                    res.send("fail");
+                    res.send("Repo creation Failed"); //TODo error handling
+                } else {
+                    res.redirect("/repo/" + config.gitRepo.Si);
                 }
             });
         });
@@ -189,7 +195,8 @@ exports.gitInit = function (req, res, config) {
  * @param  {JSON} config Master Configuration JSON
  */
 exports.deleteRepo = function (req, res, config) {
-    if (req.body.repo != undefined && req.body.repo != "" && req.body.repo != null) {
+    var validation = require("./validation");
+    if (validation.variableNotEmpty(req.body.repo)) {
         var gitDB = require("../dbSchema/gitRepo");
         var data = {
             repo: req.body.repo

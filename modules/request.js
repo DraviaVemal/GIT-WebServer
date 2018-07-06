@@ -1,4 +1,27 @@
 /**
+ * User Validation based on URL filter
+ * @param  {object} route Express Route object
+ * @param  {JSON} config Master configuration JSON
+ */
+exports.userValidation = function (route, config) {
+    var validation = require("./validation");
+    route.all("/user*", function (req, res, next) {
+        if (validation.loginValidation(req, res, config)) {
+            next();
+        } else {
+            unAuthorisedRequest(config, res);
+        }
+    });
+    route.all("/repo*", function (req, res, next) {
+        if (validation.loginValidation(req, res, config)) {
+            next();
+        } else {
+            unAuthorisedRequest(config, res);
+        }
+    });
+    return route;
+};
+/**
  * Handle the static file like CSS,JS,etc...
  * @param  {object} route Express Route object
  * @param  {JSON} config Master configuration JSON
@@ -34,9 +57,18 @@ exports.get = function (route, config) {
     var validation = require("./validation");
     route.get("/", function (req, res) {
         if (validation.loginValidation(req, res, config)) {
-            res.render("user/home", {
-                appName: config.appName,
-                userName: req.session.userData.name
+            var gitRepo = require("../dbSchema/gitRepo");
+            gitRepo.findOne({
+                createdUser: req.session.userData.userName
+            }, req, res, config, function (req, res, config, result) {
+                if (result) {
+                    res.redirect("/repo/" + result.Si);
+                } else {
+                    res.render("user/home", {
+                        appName: config.appName,
+                        name: req.session.userData.name
+                    });
+                }
             });
         } else {
             var handlebarLayout = "public";
@@ -91,50 +123,41 @@ exports.get = function (route, config) {
             });
         }
     });
-    route.get("/setting", function (req, res) {
-        if (validation.loginValidation(req, res, config)) {
-            var handlebarLayout = "default";
-            if (req.body.opti) {
-                handlebarLayout = false;
-            }
-            res.render("user/setting", {
-                layout: handlebarLayout,
-                appName: config.appName,
-                userName: req.session.userData.name
-            });
-        } else {
-            unAuthorisedRequest(config, res);
-        }
+    route.get("/repo/:repoID",function(req,res){
+        res.send(req.params);
     });
-    route.get("/profile", function (req, res) {
-        if (validation.loginValidation(req, res, config)) {
-            var handlebarLayout = "default";
-            if (req.body.opti) {
-                handlebarLayout = false;
-            }
-            res.render("user/profile", {
-                layout: handlebarLayout,
-                appName: config.appName,
-                userName: req.session.userData.name
-            });
-        } else {
-            unAuthorisedRequest(config, res);
+    route.get("/user/setting", function (req, res) {
+        var handlebarLayout = "default";
+        if (req.body.opti) {
+            handlebarLayout = false;
         }
+        res.render("user/setting", {
+            layout: handlebarLayout,
+            appName: config.appName,
+            name: req.session.userData.name
+        });
     });
-    route.get("/createRepo", function (req, res) {
-        if (validation.loginValidation(req, res, config)) {
-            var handlebarLayout = "default";
-            if (req.body.opti) {
-                handlebarLayout = false;
-            }
-            res.render("user/createRepo", {
-                layout: handlebarLayout,
-                appName: config.appName,
-                userName: req.session.userData.name
-            });
-        } else {
-            unAuthorisedRequest(config, res);
+    route.get("/user/profile", function (req, res) {
+        var handlebarLayout = "default";
+        if (req.body.opti) {
+            handlebarLayout = false;
         }
+        res.render("user/profile", {
+            layout: handlebarLayout,
+            appName: config.appName,
+            name: req.session.userData.name
+        });
+    });
+    route.get("/user/createRepo", function (req, res) {
+        var handlebarLayout = "default";
+        if (req.body.opti) {
+            handlebarLayout = false;
+        }
+        res.render("user/createRepo", {
+            layout: handlebarLayout,
+            appName: config.appName,
+            name: req.session.userData.name
+        });
     });
     route.get("/logout", function (req, res) {
         if (req.cookies[config.advProperties.cookieChecksumName]) {
@@ -179,6 +202,7 @@ exports.post = function (route, config) {
                         req.session.access = {};
                         req.session.userData = {
                             name: config.result.name,
+                            userName: config.result.userName,
                             eMail: config.result.eMail,
                         };
                         validation.loginInitialisation(req, res, config);
@@ -237,17 +261,17 @@ exports.post = function (route, config) {
 
         });
     });
-    route.post("/createRepo", function (req, res) {
+    route.post("/user/createRepo", function (req, res) {
         if (validation.loginValidation(req, res, config)) {
             git.gitInit(req, res, config);
-        }else{
+        } else {
             unAuthorisedRequest(config, res);
         }
     });
-    route.post("/deleteRepo", function (req, res) {
+    route.post("/user/deleteRepo", function (req, res) {
         if (validation.loginValidation(req, res, config)) {
             git.deleteRepo(req, res, config);
-        }else{
+        } else {
             unAuthorisedRequest(config, res);
         }
     });
@@ -259,6 +283,7 @@ exports.post = function (route, config) {
  * @param  {JSON} config Master configuration JSON
  */
 exports.gitRequest = function (route, config) {
+    var git = require("./git");
     route.get(config.gitURL + '/:reponame/info/refs', function (req, res) {
         git.checkAuth(req, res, git.getInfoRefs, config);
     });

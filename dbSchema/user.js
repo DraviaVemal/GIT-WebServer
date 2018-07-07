@@ -27,6 +27,9 @@ exports.users = function (config) {
             unique: true,
             required: true
         },
+        userNameDisplay: {
+            type: String
+        },
         eMail: {
             type: String,
             unique: true,
@@ -34,7 +37,7 @@ exports.users = function (config) {
         },
         mailVerified: {
             type: Boolean,
-            default:false
+            default: false
         },
         password: {
             type: String,
@@ -75,6 +78,7 @@ exports.createUser = function (req, res, data, config, next) {
         validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ &&
         validation.variableNotEmpty(data.password, 8)) {
         data.eMail = data.eMail.toUpperCase();
+        data.userNameDisplay = data.userName;
         data.userName = data.userName.toUpperCase();
         if (config.database == "Mongo") {
             var users = exports.users(config);
@@ -105,7 +109,7 @@ exports.createUser = function (req, res, data, config, next) {
  * Creates new user record in DB
  * @param  {object} req Request Object
  * @param  {object} res Response Object
- * @param  {{userName:String,eMail:Strings,password:String}} data Input data
+ * @param  {{eMail:Strings,password:String}} data Input data
  * @param  {JSON} config Master Configuration JSON
  * @param  {function} next Callback function(req,res,config)
  * @returns {JSON} return config.valid
@@ -115,15 +119,14 @@ exports.loginUser = function (req, res, data, config, next) {
     if ((validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ ) &&
         validation.variableNotEmpty(data.password, 8)) {
         if (data.eMail) data.eMail = data.eMail.toUpperCase();
-        if (data.userName) data.userName = data.userName.toUpperCase();
         if (config.database == "Mongo") {
             var users = exports.users(config);
             var query = {
                 $or: [{
-                        eMail: req.body.eMail
+                        eMail: data.eMail
                     },
                     {
-                        userName: req.body.eMail
+                        userName: data.eMail
                     }
                 ]
             };

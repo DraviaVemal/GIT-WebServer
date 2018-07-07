@@ -148,3 +148,25 @@ exports.findOne = function (query, req, res, config, next) {
         });
     }
 };
+/**
+ * find mongoose function will return result with all match
+ * @param  {object} query query object passed to find the results 
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} config Master Configuration JSON
+ * @param  {function} next Callback function(req,res,config)
+ */
+exports.find = function (query, req, res, config, next) {
+    if (config.database == "Mongo") {
+        var gitRepo = exports.gitRepo(config);
+        gitRepo.find(query, function (err, result) {
+            if (err) {
+                if (config.logging) {
+                    console.log(err);
+                    res.status(503);
+                    res.send();
+                }
+            } else next(req, res, config, result);
+        });
+    }
+};

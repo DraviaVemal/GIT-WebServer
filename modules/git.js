@@ -39,7 +39,7 @@ exports.checkAuth = function (req, res, next, config) {
         });
         (auth.connect(basic))(req, res, next);
     } else {
-        next(req, res, config);
+        next();
     }
 
 };
@@ -62,13 +62,13 @@ exports.getInfoRefs = function (req, res, config) {
     res.setHeader('Content-Type', 'application/x-' + service + '-advertisement');
     var packet = "# service=" + service + "\n";
     var length = packet.length + 4;
-    var hex = "0123456789abcdef";
+    var hex = "0123456789abcdef";   
     var prefix = hex.charAt(length >> 12 & 0xf);
     prefix = prefix + hex.charAt(length >> 8 & 0xf);
     prefix = prefix + hex.charAt(length >> 4 & 0xf);
     prefix = prefix + hex.charAt(length & 0xf);
     res.write(prefix + packet + '0000');
-    var git = spawn(service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + reponame]);
+    var git = spawn("gitUpload.cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + reponame]);
     git.stdout.pipe(res);
     git.stderr.on('data', function (data) {
         if (config.logging) console.log("stderr: " + data);
@@ -162,7 +162,7 @@ exports.gitInit = function (req, res, config) {
         if (req.body.type == "private") privateRepo = true;
         var data = {
             repo: req.body.repo,
-            createdUser: req.session.userData.userName,
+            createdUser: req.session.userData.userNameDisplay,
             url: req.protocol + "://" + req.host + config.gitURL + "/" + req.body.repo,
             private: privateRepo,
             description: req.body.repoDescription

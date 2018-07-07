@@ -1,3 +1,6 @@
+$coluor-white: #fff;
+$coluor-black: #000;
+
 .remove-margin {
   margin: 0;
 }
@@ -26,4 +29,9 @@
 
 .list-group-item {
   padding: 5px;
+}
+
+a {
+  color: $coluor-black;
+  text-decoration: none;
 }

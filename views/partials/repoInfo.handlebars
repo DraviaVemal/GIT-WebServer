@@ -1,3 +1,10 @@
 <ul class="list-group repo-info">
-  <li class="list-group-item text-center align-center"><a href="/user/createRepo"> + Create Repository</a>    </li>
+  {{#each repo}}
+  <li class="list-group-item text-center align-center {{selectedRepo Si}}">
+    <a href="/repo/{{Si}}">{{createdUser}}/{{repo}}</a>
+  </li>
+  {{/each}}
+  <li class="list-group-item text-center align-center">
+    <a href="/user/createRepo"> + Create Repository</a>
+  </li>
 </ul>

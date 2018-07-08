@@ -44,6 +44,9 @@ exports.staticFile = function (route, config) {
     route.get("/fontawesome.css", function (req, res) {
         res.sendFile(config.dirname + "/public/css/fontawesome.css");
     });
+    route.get("/style.css", function (req, res) {
+        res.sendFile(config.dirname + "/public/css/style.min.css");
+    });
     route.get("/jquery.js", function (req, res) {
         res.sendFile(config.dirname + "/public/js/jquery-3.3.1.min.js");
     });

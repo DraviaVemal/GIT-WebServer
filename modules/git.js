@@ -16,32 +16,18 @@ exports.User = function (user) {
  */
 exports.checkAuth = function (req, res, next, config) {
     var auth = require('http-auth');
-    var reponame = req.params.reponame;
-    var users = config.defaultUsers;
-    var repositories = config.repositories;
-    if (repositories != undefined && repositories[reponame] != undefined)
-        users = repositories[reponame];
-    if (users.length > 0) {
-        var basic = auth.basic({
-            realm: "Web."
-        }, function (username, password, callback) {
-            if (config.logging) console.log("Authenticating user " + username + " for " + reponame + " ...");
-            var passed = false;
-            for (i = 0; i < users.length; i++) {
-                if (users[i].username === username && users[i].password === password) {
-                    passed = true;
-                    break;
-                }
-            }
-            if (config.logging)
-                if (!passed) console.log("Authentication failed");
-            callback(passed);
-        });
-        (auth.connect(basic))(req, res, next);
-    } else {
-        next(req, res, config);
-    }
-
+    var basic = auth.basic({
+        realm: "Web."
+    }, function (userId, password, callback) {
+        var data = {
+            eMail: userId,
+            password: password
+        };
+        var user = require("../dbSchema/user");
+        config.git = true;
+        user.loginUser(req, res, data, config, callback);
+    });
+    auth.connect(basic)(req, res, next);
 };
 
 /**
@@ -68,6 +54,11 @@ exports.getInfoRefs = function (req, res, config) {
     prefix = prefix + hex.charAt(length >> 4 & 0xf);
     prefix = prefix + hex.charAt(length & 0xf);
     res.write(prefix + packet + '0000');
+    if (service == "git-upload-pack") {
+        service = "gitUpload";
+    } else {
+        service = "gitReceive";
+    }
     var git = spawn(service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + reponame]);
     git.stdout.pipe(res);
     git.stderr.on('data', function (data) {
@@ -106,12 +97,12 @@ exports.postReceivePack = function (req, res, config) {
     git.on('exit', function () {
         var fullGitHistory = require('full-git-history'),
             checkHistory = require('full-git-history/test/check-history');
-        fullGitHistory(["../" + config.repoDir + "/" + reponame + "/", '-o', "../" + config.repoDir + "/" + reponame + "/history.json"], function (error) {
+        fullGitHistory([config.repoDir + "/" + reponame + "/", '-o', "../" + config.repoDir + "/" + reponame + "/history.json"], function (error) {
             if (error) {
                 if (config.logging) console.error("Cannot read history: " + error.message);
                 return;
             }
-            if (checkHistory("../" + config.repoDir + "/" + reponame + "/history.json")) {
+            if (checkHistory(config.repoDir + "/" + reponame + "/history.json")) {
                 if (config.logging) console.log('No errors in history.');
             } else {
                 console.log('History has some errors.');
@@ -155,12 +146,17 @@ exports.postUploadPack = function (req, res, config) {
  * @param  {JSON} config Master Configuration JSON
  */
 exports.gitInit = function (req, res, config) {
-    if (req.body.repo != undefined && req.body.repo != "" && req.body.repo != null) {
+    var validation = require("./validation");
+    if (validation.variableNotEmpty(req.body.repo)) {
         var gitDB = require("../dbSchema/gitRepo");
+        var privateRepo = false;
+        if (req.body.type == "private") privateRepo = true;
         var data = {
             repo: req.body.repo,
-            user: "user", //TODO
-            url: "url" //TODO
+            createdUser: req.session.userData.userNameDisplay,
+            url: req.protocol + "://" + req.host + config.gitURL + "/" + req.body.repo,
+            private: privateRepo,
+            description: req.body.repoDescription
         };
         gitDB.gitRepoCreate(req, res, data, config, function (req, res, config) {
             var fileSystem = require("fs");
@@ -169,10 +165,11 @@ exports.gitInit = function (req, res, config) {
             }
             var simpleGit = require('simple-git')(config.repoDir + "/" + req.body.repo + "/");
             simpleGit.init(true, function (err) {
-                if (!err) res.send("done");
-                else {
+                if (err) {
                     if (config.logging) console.log(err);
-                    res.send("fail");
+                    res.send("Repo creation Failed"); //TODo error handling
+                } else {
+                    res.redirect("/repo/" + config.gitRepo.Si);
                 }
             });
         });
@@ -189,7 +186,8 @@ exports.gitInit = function (req, res, config) {
  * @param  {JSON} config Master Configuration JSON
  */
 exports.deleteRepo = function (req, res, config) {
-    if (req.body.repo != undefined && req.body.repo != "" && req.body.repo != null) {
+    var validation = require("./validation");
+    if (validation.variableNotEmpty(req.body.repo)) {
         var gitDB = require("../dbSchema/gitRepo");
         var data = {
             repo: req.body.repo

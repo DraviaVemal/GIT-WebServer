@@ -72,6 +72,12 @@ exports.server = function (Config) {
             console.log("Git-WebServer is initailising with below configuration");
             console.log(config);
         }
+        //TODO : Sub URL Validation
+        if (config.gitURL != "/git") {
+            config.gitURL = "/git";
+            console.log("URL validation is under development.");
+            console.log("Your custum url is resetted to '/git'");
+        }
         //Dependency Middlewares
         var express = require("express");
         var expressHandlebars = require("express-handlebars");
@@ -91,7 +97,7 @@ exports.server = function (Config) {
             fileSystem.mkdirSync("./" + config.repoDir);
         }
         var sslFiles = {};
-        if(config.enableSSL){
+        if (config.enableSSL) {
             var validation = require("./modules/validation");
             if (validation.variableNotEmpty(config.sslProperties.key) &&
                 validation.variableNotEmpty(config.sslProperties.cert) &&
@@ -110,7 +116,7 @@ exports.server = function (Config) {
             }
             if (!sslFiles.key) {
                 config.enableSSL = false;
-                if(config.logging){
+                if (config.logging) {
                     console.log("----------------------- Warning -----------------------");
                     console.log("No valid certificate files provided to enable ssl");
                     console.log("Disabling 'enableSSL' flag internally.");
@@ -173,6 +179,7 @@ exports.server = function (Config) {
         expressServer.use(express.query());
         if (config.logging) expressServer.use(logging("dev", route));
         else expressServer.use(logging("tiny", route));
+        expressServer.use(request.userValidation(route, config));
         expressServer.use(request.staticFile(route, config));
         expressServer.use(request.get(route, config));
         expressServer.use(request.post(route, config));

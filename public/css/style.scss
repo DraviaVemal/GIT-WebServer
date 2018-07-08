@@ -1,0 +1,37 @@
+$coluor-white: #fff;
+$coluor-black: #000;
+
+.remove-margin {
+  margin: 0;
+}
+
+.remove-padding {
+  padding: 0;
+}
+
+.hide-me {
+  display: none;
+}
+
+.uri-loading {
+  position: relative;
+  top: 56px;
+}
+
+.uri-content {
+  position: relative;
+  top: 56px;
+}
+
+.repo-info {
+  margin: 2px;
+}
+
+.list-group-item {
+  padding: 5px;
+}
+
+a {
+  color: $coluor-black;
+  text-decoration: none;
+}

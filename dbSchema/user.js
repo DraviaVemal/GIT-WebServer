@@ -27,6 +27,9 @@ exports.users = function (config) {
             unique: true,
             required: true
         },
+        userNameDisplay: {
+            type: String
+        },
         eMail: {
             type: String,
             unique: true,
@@ -34,7 +37,7 @@ exports.users = function (config) {
         },
         mailVerified: {
             type: Boolean,
-            default:false
+            default: false
         },
         password: {
             type: String,
@@ -75,6 +78,7 @@ exports.createUser = function (req, res, data, config, next) {
         validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ &&
         validation.variableNotEmpty(data.password, 8)) {
         data.eMail = data.eMail.toUpperCase();
+        data.userNameDisplay = data.userName;
         data.userName = data.userName.toUpperCase();
         if (config.database == "Mongo") {
             var users = exports.users(config);
@@ -105,25 +109,25 @@ exports.createUser = function (req, res, data, config, next) {
  * Creates new user record in DB
  * @param  {object} req Request Object
  * @param  {object} res Response Object
- * @param  {{userName:String,eMail:Strings,password:String}} data Input data
+ * @param  {{eMail:Strings,password:String}} data Input data
  * @param  {JSON} config Master Configuration JSON
  * @param  {function} next Callback function(req,res,config)
  * @returns {JSON} return config.valid
+ * Note : Common login caller for both web and git authentication   
  */
 exports.loginUser = function (req, res, data, config, next) {
     var validation = require("../modules/validation");
     if ((validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ ) &&
         validation.variableNotEmpty(data.password, 8)) {
         if (data.eMail) data.eMail = data.eMail.toUpperCase();
-        if (data.userName) data.userName = data.userName.toUpperCase();
         if (config.database == "Mongo") {
             var users = exports.users(config);
             var query = {
                 $or: [{
-                        eMail: req.body.eMail
+                        eMail: data.eMail
                     },
                     {
-                        userName: req.body.eMail
+                        userName: data.eMail
                     }
                 ]
             };
@@ -132,26 +136,38 @@ exports.loginUser = function (req, res, data, config, next) {
                     if (config.logging) {
                         console.log(err);
                     }
-                    res.status(503);
-                    res.send();
+                    if (config.git) {
+                        next(false);
+                    } else {
+                        res.status(503);
+                        res.send();
+                    }
                 } else {
                     if (result) {
                         var bcrypt = require("bcryptjs");
                         var validUser = bcrypt.compareSync(
-                            req.body.password,
+                            data.password,
                             result.password
                         );
-                        if (validUser) {
-                            config.valid = true;
-                            config.result = result;
-                            next(req, res, config);
+                        if (config.git) {
+                            next(validUser);
+                        } else {
+                            if (validUser) {
+                                config.valid = true;
+                                config.result = result;
+                                next(req, res, config);
+                            } else {
+                                config.valid = false;
+                                next(req, res, config);
+                            }
+                        }
+                    } else {
+                        if (config.git) {
+                            next(false);
                         } else {
                             config.valid = false;
                             next(req, res, config);
                         }
-                    } else {
-                        config.valid = false;
-                        next(req, res, config);
                     }
 
                 }

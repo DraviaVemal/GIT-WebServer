@@ -16,32 +16,18 @@ exports.User = function (user) {
  */
 exports.checkAuth = function (req, res, next, config) {
     var auth = require('http-auth');
-    var reponame = req.params.reponame;
-    var users = config.defaultUsers;
-    var repositories = config.repositories;
-    if (repositories != undefined && repositories[reponame] != undefined)
-        users = repositories[reponame];
-    if (users.length > 0) {
-        var basic = auth.basic({
-            realm: "Web."
-        }, function (username, password, callback) {
-            if (config.logging) console.log("Authenticating user " + username + " for " + reponame + " ...");
-            var passed = false;
-            for (i = 0; i < users.length; i++) {
-                if (users[i].username === username && users[i].password === password) {
-                    passed = true;
-                    break;
-                }
-            }
-            if (config.logging)
-                if (!passed) console.log("Authentication failed");
-            callback(passed);
-        });
-        (auth.connect(basic))(req, res, next);
-    } else {
-        next();
-    }
-
+    var basic = auth.basic({
+        realm: "Web."
+    }, function (userId, password, callback) {
+        var data = {
+            eMail: userId,
+            password: password
+        };
+        var user = require("../dbSchema/user");
+        config.git = true;
+        user.loginUser(req, res, data, config, callback);
+    });
+    auth.connect(basic)(req, res, next);
 };
 
 /**
@@ -62,13 +48,18 @@ exports.getInfoRefs = function (req, res, config) {
     res.setHeader('Content-Type', 'application/x-' + service + '-advertisement');
     var packet = "# service=" + service + "\n";
     var length = packet.length + 4;
-    var hex = "0123456789abcdef";   
+    var hex = "0123456789abcdef";
     var prefix = hex.charAt(length >> 12 & 0xf);
     prefix = prefix + hex.charAt(length >> 8 & 0xf);
     prefix = prefix + hex.charAt(length >> 4 & 0xf);
     prefix = prefix + hex.charAt(length & 0xf);
     res.write(prefix + packet + '0000');
-    var git = spawn("gitUpload.cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + reponame]);
+    if (service == "git-upload-pack") {
+        service = "gitUpload";
+    } else {
+        service = "gitReceive";
+    }
+    var git = spawn(service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + reponame]);
     git.stdout.pipe(res);
     git.stderr.on('data', function (data) {
         if (config.logging) console.log("stderr: " + data);
@@ -106,12 +97,12 @@ exports.postReceivePack = function (req, res, config) {
     git.on('exit', function () {
         var fullGitHistory = require('full-git-history'),
             checkHistory = require('full-git-history/test/check-history');
-        fullGitHistory(["../" + config.repoDir + "/" + reponame + "/", '-o', "../" + config.repoDir + "/" + reponame + "/history.json"], function (error) {
+        fullGitHistory([config.repoDir + "/" + reponame + "/", '-o', "../" + config.repoDir + "/" + reponame + "/history.json"], function (error) {
             if (error) {
                 if (config.logging) console.error("Cannot read history: " + error.message);
                 return;
             }
-            if (checkHistory("../" + config.repoDir + "/" + reponame + "/history.json")) {
+            if (checkHistory(config.repoDir + "/" + reponame + "/history.json")) {
                 if (config.logging) console.log('No errors in history.');
             } else {
                 console.log('History has some errors.');

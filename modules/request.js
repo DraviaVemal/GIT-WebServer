@@ -28,11 +28,11 @@ exports.userValidation = function (route, config) {
     });
     //Repo redirect control check
     route.all(config.gitURL + '/:reponame', function (req, res, next) {
-        git.checkAuth(req, res, next, config); //TODO
+        next(); //TODO
     });
     //Git code base access control
     route.all(config.gitURL + '/:reponame/*', function (req, res, next) {
-        next(); //TODO
+        git.checkAuth(req, res, next, config); //TODO
     });
     return route;
 };
@@ -230,7 +230,6 @@ exports.get = function (route, config) {
     });
     return route;
 };
-
 /**
  * Handles the Post request made to the server
  * @param  {object} route Express Route object

@@ -113,6 +113,7 @@ exports.createUser = function (req, res, data, config, next) {
  * @param  {JSON} config Master Configuration JSON
  * @param  {function} next Callback function(req,res,config)
  * @returns {JSON} return config.valid
+ * Note : Common login caller for both web and git authentication   
  */
 exports.loginUser = function (req, res, data, config, next) {
     var validation = require("../modules/validation");
@@ -135,26 +136,38 @@ exports.loginUser = function (req, res, data, config, next) {
                     if (config.logging) {
                         console.log(err);
                     }
-                    res.status(503);
-                    res.send();
+                    if (config.git) {
+                        next(false);
+                    } else {
+                        res.status(503);
+                        res.send();
+                    }
                 } else {
                     if (result) {
                         var bcrypt = require("bcryptjs");
                         var validUser = bcrypt.compareSync(
-                            req.body.password,
+                            data.password,
                             result.password
                         );
-                        if (validUser) {
-                            config.valid = true;
-                            config.result = result;
-                            next(req, res, config);
+                        if (config.git) {
+                            next(validUser);
+                        } else {
+                            if (validUser) {
+                                config.valid = true;
+                                config.result = result;
+                                next(req, res, config);
+                            } else {
+                                config.valid = false;
+                                next(req, res, config);
+                            }
+                        }
+                    } else {
+                        if (config.git) {
+                            next(false);
                         } else {
                             config.valid = false;
                             next(req, res, config);
                         }
-                    } else {
-                        config.valid = false;
-                        next(req, res, config);
                     }
 
                 }

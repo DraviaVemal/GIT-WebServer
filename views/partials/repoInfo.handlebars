@@ -1,7 +1,10 @@
 <ul class="list-group repo-info">
   {{#each repo}}
-  <li class="list-group-item text-center align-center {{selectedRepo Si}}">
+  <li class="list-group-item d-flex justify-content-between align-items-center {{selectedRepo Si}}">
     <a href="/repo/{{Si}}">{{createdUser}}/{{repo}}</a>
+    {{#if private}}
+    <span class="badge badge-pill"><img src="/img/private.png"></span>
+    {{/if}}
   </li>
   {{/each}}
   <li class="list-group-item text-center align-center">

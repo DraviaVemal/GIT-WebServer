@@ -26,9 +26,13 @@ exports.userValidation = function (route, config) {
     route.all("/repo/:repoID", function (req, res, next) {
         next(); //TODO
     });
+    //Repo redirect control check
+    route.all(config.gitURL + '/:reponame', function (req, res, next) {
+        git.checkAuth(req, res, next, config); //TODO
+    });
     //Git code base access control
     route.all(config.gitURL + '/:reponame/*', function (req, res, next) {
-        git.checkAuth(req, res, next, config); //TODO
+        next(); //TODO
     });
     return route;
 };
@@ -57,7 +61,10 @@ exports.staticFile = function (route, config) {
         res.sendFile(config.dirname + "/public/js/home.js");
     });
     route.get("/favicon.ico", function (req, res) {
-        res.sendFile(config.dirname + "/public/img/git.ico");
+        res.sendFile(config.dirname + "/public/img/favicon.ico");
+    });
+    route.get("/img/:imageName", function (req, res) {
+        res.sendFile(config.dirname + "/public/img/icon/" + req.params.imageName);
     });
     return route;
 };
@@ -149,13 +156,15 @@ exports.get = function (route, config) {
                 if (repoDetails.Si == req.params.repoID) {
                     currentRepoDetails.descripton = repoDetails.description;
                     currentRepoDetails.url = repoDetails.url;
+                    currentRepoDetails.private = repoDetails.private;
+                    currentRepoDetails.id = repoDetails.Si;
                 }
             });
             res.render("user/repoHome", {
                 layout: handlebarLayout,
                 helpers: {
                     selectedRepo: function (Si) {
-                        if (Si == req.params.repoID) return "active";
+                        if (Si == req.params.repoID) return "list-group-item-info";
                         else return "";
                     }
                 },
@@ -163,7 +172,9 @@ exports.get = function (route, config) {
                 name: req.session.userData.name,
                 repo: repoResult,
                 descripton: currentRepoDetails.descripton,
-                url: currentRepoDetails.url
+                url: currentRepoDetails.url,
+                private : currentRepoDetails.private,
+                id : currentRepoDetails.id
             });
         });
     });

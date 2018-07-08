@@ -2,6 +2,30 @@
     {{>repoInfo}}
 </div>
 <div class="col-md-9">
-    <p>{{descripton}}</p>
-    {{url}}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-12">
+                    <p>{{descripton}}</p>
+                    {{url}}
+                </div>
+            </div>
+            <div class="row">
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/repo/{{id}}">Read Me</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/repo/{{id}}/files">Files</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/repo/{{id}}/branch">Branch</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/repo/{{id}}/setting">Setting</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>

@@ -43,7 +43,6 @@ exports.loginValidation = function (req, res, config) {
  * @param  {JSON} config Master Configuration JSON
  */
 exports.loginInitialisation = function (req, res, config) {
-    var uidGenerator = require('node-unique-id-generator');
     var bcrypt = require("bcryptjs");
     res.cookie(config.advProperties.cookieChecksumName, bcrypt.hashSync(req.session.id + config.salt, config.advProperties.criptoSalt), {
         maxAge: 1000 * 60 * 60 * 24,

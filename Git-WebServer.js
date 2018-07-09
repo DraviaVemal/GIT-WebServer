@@ -188,13 +188,15 @@ exports.server = function (Config) {
         expressServer.use(function (req, res) {
             res.status(404);
             res.render("errors/404", {
-                layout: false
+                layout: false,
+                config:config
             });
         });
         expressServer.use(function (req, res) {
             res.status(500);
             res.render("errors/500", {
-                layout: false
+                layout: false,
+                config:config
             });
         });
         if (config.enableSSL) {

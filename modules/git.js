@@ -40,8 +40,8 @@ exports.getInfoRefs = function (req, res, config) {
     var childProcess = require('child_process');
     var spawn = childProcess.spawn;
     var service = req.query.service;
-    var reponame = req.params.reponame;
-    if (config.logging) console.log('GET ' + service + ' / ' + reponame);
+    var repoName = req.params.repoName;
+    if (config.logging) console.log('GET ' + service + ' / ' + repoName);
     res.setHeader('Expires', new Date(Date.now() + 2592000000).toUTCString());
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
@@ -59,7 +59,7 @@ exports.getInfoRefs = function (req, res, config) {
     } else {
         service = "gitReceive";
     }
-    var git = spawn(service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + reponame]);
+    var git = spawn(service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName]);
     git.stdout.pipe(res);
     git.stderr.on('data', function (data) {
         if (config.logging) console.log("stderr: " + data);
@@ -78,13 +78,13 @@ exports.getInfoRefs = function (req, res, config) {
 exports.postReceivePack = function (req, res, config) {
     var childProcess = require('child_process');
     var spawn = childProcess.spawn;
-    var reponame = req.params.reponame;
-    if (config.logging) console.log('POST git-receive-pack / ' + reponame);
+    var repoName = req.params.repoName;
+    if (config.logging) console.log('POST git-receive-pack / ' + repoName);
     res.setHeader('Expires', new Date(Date.now() + 2592000000).toUTCString());
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
     res.setHeader('Content-Type', 'application/x-git-receive-pack-result');
-    var git = spawn("gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + reponame]);
+    var git = spawn("gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName]);
     if (req.headers['content-encoding'] == 'gzip') {
         req.pipe(zlib.createGunzip()).pipe(git.stdin);
     } else {
@@ -97,12 +97,12 @@ exports.postReceivePack = function (req, res, config) {
     git.on('exit', function () {
         var fullGitHistory = require('full-git-history'),
             checkHistory = require('full-git-history/test/check-history');
-        fullGitHistory([config.repoDir + "/" + reponame + "/", '-o', "../" + config.repoDir + "/" + reponame + "/history.json"], function (error) {
+        fullGitHistory([config.repoDir + "/" + repoName + "/", '-o', "../" + config.repoDir + "/" + repoName + "/history.json"], function (error) {
             if (error) {
                 if (config.logging) console.error("Cannot read history: " + error.message);
                 return;
             }
-            if (checkHistory(config.repoDir + "/" + reponame + "/history.json")) {
+            if (checkHistory(config.repoDir + "/" + repoName + "/history.json")) {
                 if (config.logging) console.log('No errors in history.');
             } else {
                 console.log('History has some errors.');
@@ -121,13 +121,13 @@ exports.postReceivePack = function (req, res, config) {
 exports.postUploadPack = function (req, res, config) {
     var childProcess = require('child_process');
     var spawn = childProcess.spawn;
-    var reponame = req.params.reponame;
-    if (config.logging) console.log('POST git-upload-pack / ' + reponame);
+    var repoName = req.params.repoName;
+    if (config.logging) console.log('POST git-upload-pack / ' + repoName);
     res.setHeader('Expires', new Date(Date.now() + 2592000000).toUTCString());
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
     res.setHeader('Content-Type', 'application/x-git-upload-pack-result');
-    var git = spawn("gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + reponame]);
+    var git = spawn("gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName]);
     if (req.headers['content-encoding'] == 'gzip') {
         req.pipe(zlib.createGunzip()).pipe(git.stdin);
     } else {
@@ -166,10 +166,12 @@ exports.gitInit = function (req, res, config) {
             var simpleGit = require('simple-git')(config.repoDir + "/" + req.body.repo + "/");
             simpleGit.init(true, function (err) {
                 if (err) {
-                    if (config.logging) console.log(err);
-                    res.send("Repo creation Failed"); //TODo error handling
-                } else {
-                    res.redirect("/repo/" + config.gitRepo.Si);
+                    if (config.logging) {
+                        console.log(err);
+                        res.status(403);
+                        res.send();
+                    }
+                    res.redirect(config.gitURL + "/" + config.gitRepo.repo);
                 }
             });
         });

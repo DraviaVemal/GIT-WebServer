@@ -75,7 +75,17 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
                 if (err) {
                     if (config.logging) {
                         if (err.code == 11000) {
-                            res.send("exist"); //TODO Existing repo message
+                            var handlebarLayout = "default";
+                            if (req.body.opti) {
+                                handlebarLayout = false;
+                            }
+                            var message = '<div class="alert alert-warning" role="alert">Sorry ! Repository name "<strong>' + data.repo + '</strong>" already taken</div>';
+                            res.render("user/createRepo", {
+                                layout: handlebarLayout,
+                                name: req.session.userData.name,
+                                message: message,
+                                config:config
+                            });
                         } else {
                             console.log(err);
                             res.status(503);

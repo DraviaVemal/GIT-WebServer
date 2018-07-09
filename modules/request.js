@@ -259,10 +259,9 @@ exports.post = function (route, config) {
                     }
                 });
             } else {
-                var message = '<div class="alert alert-info" role="alert"><strong>Invalid UserID/Password</strong></div>';
                 res.render("pages/login", {
                     layout: "public",
-                    message: message,
+                    failure: true,
                     config: config
                 });
             }

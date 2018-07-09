@@ -14,25 +14,22 @@ exports.userValidation = function (route, config) {
             unAuthorisedRequest(config, res);
         }
     });
-    //user login verification for repo access
-    route.all("/repo*", function (req, res, next) {
-        if (validation.loginValidation(req, res, config)) {
-            next(); //TODO
+    //user login verification
+    route.all(config.gitURL + "*", function (req, res, next) {
+        if ("gzip" === req.headers["accept-encoding"] &&
+            "git/" === req.headers["user-agent"].substring(0, 4)) {
+            git.checkAuth(req, res, next, config);
         } else {
-            unAuthorisedRequest(config, res);
+            if (validation.loginValidation(req, res, config)) {
+                next(); //TODO
+            } else {
+                unAuthorisedRequest(config, res);
+            }
         }
     });
-    //Git Web Access Control
-    route.all("/repo/:repoID", function (req, res, next) {
+    //Git/Web Access Control
+    route.all(config.gitURL + "/:repoName*", function (req, res, next) {
         next(); //TODO
-    });
-    //Repo redirect control check
-    route.all(config.gitURL + '/:reponame', function (req, res, next) {
-        next(); //TODO
-    });
-    //Git code base access control
-    route.all(config.gitURL + '/:reponame/*', function (req, res, next) {
-        git.checkAuth(req, res, next, config); //TODO
     });
     return route;
 };
@@ -83,11 +80,11 @@ exports.get = function (route, config) {
                 createdUser: req.session.userData.userNameDisplay
             }, req, res, config, function (req, res, config, result) {
                 if (result) {
-                    res.redirect("/repo/" + result.Si);
+                    res.redirect(config.gitURL + "/" + result.repo);
                 } else {
                     res.render("user/home", {
-                        appName: config.appName,
-                        name: req.session.userData.name
+                        name: req.session.userData.name,
+                        config: config
                     });
                 }
             });
@@ -98,7 +95,7 @@ exports.get = function (route, config) {
             }
             res.render("pages/login", {
                 layout: handlebarLayout,
-                appName: config.appName
+                config: config
             });
         }
     });
@@ -112,7 +109,7 @@ exports.get = function (route, config) {
             }
             res.render("pages/login", {
                 layout: handlebarLayout,
-                appName: config.appName
+                config: config
             });
         }
     });
@@ -126,7 +123,7 @@ exports.get = function (route, config) {
             }
             res.render("pages/signup", {
                 layout: handlebarLayout,
-                appName: config.appName
+                config: config
             });
         }
     });
@@ -140,11 +137,11 @@ exports.get = function (route, config) {
             }
             res.render("pages/forgotPass", {
                 layout: handlebarLayout,
-                appName: config.appName
+                config: config
             });
         }
     });
-    route.get("/repo/:repoID", function (req, res) {
+    route.get(config.gitURL + "/:repoName", function (req, res) {
         var gitRepo = require("../dbSchema/gitRepo");
         gitRepo.find({}, req, res, config, function (req, res, config, repoResult) {
             var handlebarLayout = "default";
@@ -153,33 +150,30 @@ exports.get = function (route, config) {
             }
             var currentRepoDetails = {};
             repoResult.forEach(function (repoDetails) {
-                if (repoDetails.Si == req.params.repoID) {
+                if (repoDetails.repo == req.params.repoName) {
                     currentRepoDetails.descripton = repoDetails.description;
                     currentRepoDetails.url = repoDetails.url;
                     currentRepoDetails.private = repoDetails.private;
-                    currentRepoDetails.id = repoDetails.Si;
+                    currentRepoDetails.repo = repoDetails.repo;
                 }
             });
             res.render("user/repoHome", {
                 layout: handlebarLayout,
                 helpers: {
-                    selectedRepo: function (Si) {
-                        if (Si == req.params.repoID) return "list-group-item-info";
+                    selectedRepo: function (repo) {
+                        if (repo == req.params.repoName) return "list-group-item-info";
                         else return "";
                     }
                 },
-                appName: config.appName,
                 name: req.session.userData.name,
                 repo: repoResult,
                 descripton: currentRepoDetails.descripton,
                 url: currentRepoDetails.url,
-                private : currentRepoDetails.private,
-                id : currentRepoDetails.id
+                private: currentRepoDetails.private,
+                repoName: currentRepoDetails.repo,
+                config: config
             });
         });
-    });
-    route.get(config.gitURL + '/:reponame', function (req, res) {
-        res.send("dev"); //TODO
     });
     route.get("/user/setting", function (req, res) {
         var handlebarLayout = "default";
@@ -188,8 +182,8 @@ exports.get = function (route, config) {
         }
         res.render("user/setting", {
             layout: handlebarLayout,
-            appName: config.appName,
-            name: req.session.userData.name
+            name: req.session.userData.name,
+            config: config
         });
     });
     route.get("/user/profile", function (req, res) {
@@ -199,8 +193,8 @@ exports.get = function (route, config) {
         }
         res.render("user/profile", {
             layout: handlebarLayout,
-            appName: config.appName,
-            name: req.session.userData.name
+            name: req.session.userData.name,
+            config: config
         });
     });
     route.get("/user/createRepo", function (req, res) {
@@ -210,8 +204,8 @@ exports.get = function (route, config) {
         }
         res.render("user/createRepo", {
             layout: handlebarLayout,
-            appName: config.appName,
-            name: req.session.userData.name
+            name: req.session.userData.name,
+            config: config
         });
     });
     route.get("/logout", function (req, res) {
@@ -269,7 +263,7 @@ exports.post = function (route, config) {
                 res.render("pages/login", {
                     layout: "public",
                     message: message,
-                    appName: config.appName
+                    config: config
                 });
             }
         });
@@ -288,18 +282,18 @@ exports.post = function (route, config) {
         if (data.password === data.rPassword) {
             userDB.createUser(req, res, data, config, function (req, res, config) {
                 if (config.exist) {
-                    message = '<div class="alert alert-info" role="alert"><strong>User already exist!</strong></div>';
+                    message = '<div class="alert alert-warning" role="alert"><strong>User already exist!</strong></div>';
                     res.render("pages/signup", {
                         layout: "public",
                         message: message,
-                        appName: config.appName
+                        config: config
                     });
                 } else {
-                    message = '<div class="alert alert-info" role="alert"><strong>User registration successful</strong></div>';
+                    message = '<div class="alert alert-success" role="alert"><strong>User registration successful</strong></div>';
                     res.render("pages/login", {
                         layout: "public",
                         message: message,
-                        appName: config.appName
+                        config: config
                     });
                 }
             });
@@ -311,14 +305,14 @@ exports.post = function (route, config) {
                 userName: req.body.userName,
                 eMail: req.body.eMail,
                 message: message,
-                appName: config.appName
+                config: config
             });
         }
     });
     route.post("/forgot", function (req, res) {
         res.render("page/forgotPass", {
             layout: "public",
-
+            config: config
         });
     });
     route.post("/user/createRepo", function (req, res) {
@@ -344,13 +338,13 @@ exports.post = function (route, config) {
  */
 exports.gitRequest = function (route, config) {
     var git = require("./git");
-    route.get(config.gitURL + '/:reponame/info/refs', function (req, res) {
+    route.get(config.gitURL + '/:repoName/info/refs', function (req, res) {
         git.getInfoRefs(req, res, config);
     });
-    route.post(config.gitURL + '/:reponame/git-receive-pack', function (req, res) {
+    route.post(config.gitURL + '/:repoName/git-receive-pack', function (req, res) {
         git.postReceivePack(req, res, config);
     });
-    route.post(config.gitURL + '/:reponame/git-upload-pack', function (req, res) {
+    route.post(config.gitURL + '/:repoName/git-upload-pack', function (req, res) {
         git.postUploadPack(req, res, config);
     });
     return route;

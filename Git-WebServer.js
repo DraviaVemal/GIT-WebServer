@@ -39,10 +39,8 @@
  * @param  {JSON.config} Config Master configuration file
  */
 exports.server = function (Config) {
-    if ((Config.salt != undefined) &&
-        (Config.salt != "") &&
-        (Config.salt != null) &&
-        (Config.salt.length >= 8)) {
+    var validation = require("./modules/validation");
+    if (validation.variableNotEmpty(Config.salt, 8)) {
         var config = Config;
         config.port = config.port || 80;
         config.gitURL = config.gitURL || "/git";
@@ -50,7 +48,6 @@ exports.server = function (Config) {
         config.repositories = config.repositories || {};
         config.defaultUsers = config.defaultUsers || [];
         config.appName = config.appName || "Git-WebServer";
-        config.logging = config.logging || true;
         config.dbName = config.dbName || "GitWebServer";
         config.dbURL = config.dbURL || "localhost";
         config.dbUser = config.dbUser || "";
@@ -98,7 +95,6 @@ exports.server = function (Config) {
         }
         var sslFiles = {};
         if (config.enableSSL) {
-            var validation = require("./modules/validation");
             if (validation.variableNotEmpty(config.sslProperties.key) &&
                 validation.variableNotEmpty(config.sslProperties.cert) &&
                 validation.variableNotEmpty(config.sslProperties.ca)) {
@@ -189,14 +185,14 @@ exports.server = function (Config) {
             res.status(404);
             res.render("errors/404", {
                 layout: false,
-                config:config
+                config: config
             });
         });
         expressServer.use(function (req, res) {
             res.status(500);
             res.render("errors/500", {
                 layout: false,
-                config:config
+                config: config
             });
         });
         if (config.enableSSL) {
@@ -210,20 +206,20 @@ exports.server = function (Config) {
                 res.send("Server Error");
             });
             expressRedirectServer.listen(80, function () {
-                if (config.logging) console.log(config.appName + "HTTPS redirect Running at Port : 80");
+                console.log(config.appName + "HTTPS redirect Running at Port : 80");
             });
             https.createServer(sslFiles, expressServer).listen(443, function () {
-                if (config.logging) console.log(config.appName + " Running at Port : 443");
+                console.log(config.appName + " Running at Port : 443");
             });
         } else {
             //starts standard HTTP server
             expressServer.listen(config.port, function () {
-                if (config.logging) console.log(config.appName + " Running at Port : " + config.port);
+                console.log(config.appName + " Running at Port : " + config.port);
             });
         }
     } else {
         console.log("Salt key is mandatory in launch configuration.");
-        console.log("Salt key shouldhave min. length of 8 char.");
+        console.log("Salt key should have min. length of 8 char.");
         console.log("Git-WebServer Launch Terminated.");
     }
 };

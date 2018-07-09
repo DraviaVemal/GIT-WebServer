@@ -62,3 +62,7 @@ typings/
 
 #Ignore folder
 repos/
+
+#Custom config file
+config.json
+config_broke.json

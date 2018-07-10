@@ -97,18 +97,19 @@ exports.postReceivePack = function (req, res, config) {
     git.on('exit', function () {
         var fullGitHistory = require('full-git-history'),
             checkHistory = require('full-git-history/test/check-history');
-        fullGitHistory([config.repoDir + "/" + repoName + "/", '-o', "../" + config.repoDir + "/" + repoName + "/history.json"], function (error) {
+        fullGitHistory([config.repoDir + "/" + repoName + "/", '-o', config.repoDir + "/" + repoName + "/history.json"], function (error) {
             if (error) {
                 if (config.logging) console.error("Cannot read history: " + error.message);
                 return;
             }
-            if (checkHistory(config.repoDir + "/" + repoName + "/history.json")) {
-                if (config.logging) console.log('No errors in history.');
-            } else {
-                console.log('History has some errors.');
-            }
+            //TODO : Validate history need to be organised
+            // if (checkHistory(config.repoDir + "/" + repoName + "/history.json")) {
+            //     if (config.logging) console.log('No errors in history.');
+            // } else {
+            //     console.log('History has some errors.');
+            // }
             res.end();
-        });
+        }); 
     });
 };
 

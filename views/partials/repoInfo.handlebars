@@ -1,7 +1,7 @@
 <ul class="list-group repo-info">
   {{#each repo}}
   <li class="list-group-item d-flex justify-content-between align-items-center {{selectedRepo repo}}">
-    <a href="{{../config.gitURL}}/{{repo}}">{{createdUser}}/{{repo}}</a>
+    <a href="{{../config.gitURL}}/{{repo}}/readme">{{createdUser}}/{{repo}}</a>
     {{#if private}}
     <span class="badge badge-pill"><img src="/img/private.png"></span>
     {{/if}}

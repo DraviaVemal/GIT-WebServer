@@ -14,22 +14,41 @@ exports.userValidation = function (route, config) {
             unAuthorisedRequest(config, res);
         }
     });
-    //user login verification
-    route.all(config.gitURL + "*", function (req, res, next) {
-        if ("gzip" === req.headers["accept-encoding"] &&
-            "git/" === req.headers["user-agent"].substring(0, 4)) {
-            git.checkAuth(req, res, next, config);
+    //Git login verification
+    var gitRequest = false;
+    route.all(config.gitURL + "/:repoName.git/?*", function (req, res, next) {
+        if (req.params.repoName) {
+            if ("gzip" === req.headers["accept-encoding"] &&
+                "git/" === req.headers["user-agent"].substring(0, 4)) {
+                gitRequest = true;
+                git.checkAuth(req, res, next, config);
+            } else {
+                res.redirect(config.gitURL + "/" + req.params.repoName);
+            }
         } else {
+            res.status(401);
+            res.send();
+        }
+    });
+    //user login verification
+    route.all(config.gitURL + "/:repoName/?*", function (req, res, next) {
+        if (!gitRequest) {
             if (validation.loginValidation(req, res, config)) {
                 next(); //TODO
             } else {
                 unAuthorisedRequest(config, res);
             }
+        } else {
+            next(); //If it's a gitRequest Call the URL pattern match skips
         }
     });
     //Git/Web Access Control
-    route.all(config.gitURL + "/:repoName*", function (req, res, next) {
-        next(); //TODO
+    route.all(config.gitURL + "(/:repoName)?(*)", function (req, res, next) {
+        if (req.params.repoName) {
+            next(); //TODO
+        } else {
+            res.redirect("/");
+        }
     });
     return route;
 };
@@ -80,7 +99,7 @@ exports.get = function (route, config) {
                 createdUser: req.session.userData.userNameDisplay
             }, req, res, config, function (req, res, config, result) {
                 if (result) {
-                    res.redirect(config.gitURL + "/" + result.repo);
+                    res.redirect(config.gitURL + "/" + result.repo + "/readme");
                 } else {
                     res.render("user/home", {
                         name: req.session.userData.name,
@@ -141,69 +160,100 @@ exports.get = function (route, config) {
             });
         }
     });
-    route.get(config.gitURL + "/:repoName", function (req, res) {
+    route.get(config.gitURL + "/:repoName/:repoPage", function (req, res) {
         var gitRepo = require("../dbSchema/gitRepo");
+        var page;
+        var details = {};
+        switch (req.params.repoPage) {
+            case "files":
+                page = "repo/files";
+                break;
+            case "branches":
+                var branchesCommits = require("./branchesCommits");
+                details = branchesCommits.generalDetails(config, req.params.repoName);
+                var verify = false;
+                if(details.head){
+                    verify = true;        
+                }
+                page = "repo/branches";
+                if (req.body.opti) {
+                    res.render("partials/" + page, {
+                        branchName: details.head,
+                        branches: details.branches,
+                        verify:verify
+                    });
+                }
+                break;
+            case "setting":
+                page = "repo/setting";
+                break;
+            case "readme":
+                page = "repo/readme";
+                break;
+            default:
+                res.redirect(config.gitURL + "/" + req.params.repoName + "/readme");
+                break;
+        }
         gitRepo.find({}, req, res, config, function (req, res, config, repoResult) {
-            var handlebarLayout = "default";
-            if (req.body.opti) {
-                handlebarLayout = false;
-            }
             var currentRepoDetails = {};
             repoResult.forEach(function (repoDetails) {
                 if (repoDetails.repo == req.params.repoName) {
                     currentRepoDetails.descripton = repoDetails.description;
-                    currentRepoDetails.url = repoDetails.url;
+                    currentRepoDetails.url = repoDetails.url + ".git";
                     currentRepoDetails.private = repoDetails.private;
                     currentRepoDetails.repo = repoDetails.repo;
                 }
             });
-            res.render("user/repoHome", {
-                layout: handlebarLayout,
-                helpers: {
-                    selectedRepo: function (repo) {
-                        if (repo == req.params.repoName) return "list-group-item-info";
-                        else return "";
-                    }
-                },
-                name: req.session.userData.name,
-                repo: repoResult,
-                descripton: currentRepoDetails.descripton,
-                url: currentRepoDetails.url,
-                private: currentRepoDetails.private,
-                repoName: currentRepoDetails.repo,
-                config: config
-            });
-        });
-    });
-    route.get("/user/setting", function (req, res) {
-        var handlebarLayout = "default";
-        if (req.body.opti) {
-            handlebarLayout = false;
-        }
-        res.render("user/setting", {
-            layout: handlebarLayout,
-            name: req.session.userData.name,
-            config: config
-        });
-    });
-    route.get("/user/profile", function (req, res) {
-        var handlebarLayout = "default";
-        if (req.body.opti) {
-            handlebarLayout = false;
-        }
-        res.render("user/profile", {
-            layout: handlebarLayout,
-            name: req.session.userData.name,
-            config: config
+            if (currentRepoDetails.url) {
+                res.render("repo/repoHome", { //Read Me
+                    helpers: {
+                        selectedRepo: function (repo) {
+                            if (repo == req.params.repoName) return "list-group-item-info";
+                            else return "";
+                        },
+                        activeTab: function () {
+                            return page.toLowerCase();
+                        }
+                    },
+                    name: req.session.userData.name,
+                    repo: repoResult,
+                    descripton: currentRepoDetails.descripton,
+                    url: currentRepoDetails.url,
+                    private: currentRepoDetails.private,
+                    repoName: currentRepoDetails.repo,
+                    branchName: details.head,
+                    branches: details.branches,
+                    config: config,
+                    verify:verify
+                });
+            } else {
+                res.redirect("/");
+            }
         });
     });
     route.get("/user/createRepo", function (req, res) {
-        var handlebarLayout = "default";
-        if (req.body.opti) {
-            handlebarLayout = false;
-        }
         res.render("user/createRepo", {
-            layout: handlebarLayout,
+            name: req.session.userData.name,
+            config: config
+        });
+    });
+    route.get("/user/:userPage", function (req, res) {
+        var page;
+        switch (req.params.userPage) {
+            case "setting":
+                page = "user/setting";
+                break;
+            case "profile":
+                page = "user/profile";
+                break;
+            default:
+                res.redirect("/");
+                break;
+        }
+        if (req.body.opti) {
+            //TODO : Front End Partial Load 
+        }
+        res.render("partials/user/" + req.params.userPage, {
             name: req.session.userData.name,
             config: config
         });
@@ -337,13 +387,13 @@ exports.post = function (route, config) {
  */
 exports.gitRequest = function (route, config) {
     var git = require("./git");
-    route.get(config.gitURL + '/:repoName/info/refs', function (req, res) {
+    route.get(config.gitURL + '/:repoName.git/info/refs', function (req, res) {
         git.getInfoRefs(req, res, config);
     });
-    route.post(config.gitURL + '/:repoName/git-receive-pack', function (req, res) {
+    route.post(config.gitURL + '/:repoName.git/git-receive-pack', function (req, res) {
         git.postReceivePack(req, res, config);
     });
-    route.post(config.gitURL + '/:repoName/git-upload-pack', function (req, res) {
+    route.post(config.gitURL + '/:repoName.git/git-upload-pack', function (req, res) {
         git.postUploadPack(req, res, config);
     });
     return route;

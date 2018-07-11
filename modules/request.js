@@ -163,12 +163,26 @@ exports.get = function (route, config) {
     route.get(config.gitURL + "/:repoName/:repoPage", function (req, res) {
         var gitRepo = require("../dbSchema/gitRepo");
         var page;
+        var details = {};
         switch (req.params.repoPage) {
             case "files":
                 page = "repo/files";
                 break;
-            case "branchs":
-                page = "repo/branchs";
+            case "branches":
+                var branchesCommits = require("./branchesCommits");
+                details = branchesCommits.generalDetails(config, req.params.repoName);
+                var verify = false;
+                if(details.head){
+                    verify = true;        
+                }
+                page = "repo/branches";
+                if (req.body.opti) {
+                    res.render("partials/" + page, {
+                        branchName: details.head,
+                        branches: details.branches,
+                        verify:verify
+                    });
+                }
                 break;
             case "setting":
                 page = "repo/setting";
@@ -180,45 +194,50 @@ exports.get = function (route, config) {
                 res.redirect(config.gitURL + "/" + req.params.repoName + "/readme");
                 break;
         }
-        if (req.body.opti) {
-            //TODO : Front End Partial Load 
-        } else {
-            gitRepo.find({}, req, res, config, function (req, res, config, repoResult) {
-                var currentRepoDetails = {};
-                repoResult.forEach(function (repoDetails) {
-                    if (repoDetails.repo == req.params.repoName) {
-                        currentRepoDetails.descripton = repoDetails.description;
-                        currentRepoDetails.url = repoDetails.url + ".git";
-                        currentRepoDetails.private = repoDetails.private;
-                        currentRepoDetails.repo = repoDetails.repo;
-                    }
-                });
-                if (currentRepoDetails.url) {
-                    res.render("repo/repoHome", { //Read Me
-                        helpers: {
-                            selectedRepo: function (repo) {
-                                if (repo == req.params.repoName) return "list-group-item-info";
-                                else return "";
-                            },
-                            activeTab: function () {
-                                return page.toLowerCase();
-                            }
-                        },
-                        name: req.session.userData.name,
-                        repo: repoResult,
-                        descripton: currentRepoDetails.descripton,
-                        url: currentRepoDetails.url,
-                        private: currentRepoDetails.private,
-                        repoName: currentRepoDetails.repo,
-                        config: config
-                    });
-                } else {
-                    res.redirect("/");
+        gitRepo.find({}, req, res, config, function (req, res, config, repoResult) {
+            var currentRepoDetails = {};
+            repoResult.forEach(function (repoDetails) {
+                if (repoDetails.repo == req.params.repoName) {
+                    currentRepoDetails.descripton = repoDetails.description;
+                    currentRepoDetails.url = repoDetails.url + ".git";
+                    currentRepoDetails.private = repoDetails.private;
+                    currentRepoDetails.repo = repoDetails.repo;
                 }
             });
-        }
+            if (currentRepoDetails.url) {
+                res.render("repo/repoHome", { //Read Me
+                    helpers: {
+                        selectedRepo: function (repo) {
+                            if (repo == req.params.repoName) return "list-group-item-info";
+                            else return "";
+                        },
+                        activeTab: function () {
+                            return page.toLowerCase();
+                        }
+                    },
+                    name: req.session.userData.name,
+                    repo: repoResult,
+                    descripton: currentRepoDetails.descripton,
+                    url: currentRepoDetails.url,
+                    private: currentRepoDetails.private,
+                    repoName: currentRepoDetails.repo,
+                    branchName: details.head,
+                    branches: details.branches,
+                    config: config,
+                    verify:verify
+                });
+            } else {
+                res.redirect("/");
+            }
+        });
     });
-    route.get("(/user)?(/user/:userPage)?", function (req, res) {
+    route.get("/user/createRepo", function (req, res) {
+        res.render("user/createRepo", {
+            name: req.session.userData.name,
+            config: config
+        });
+    });
+    route.get("/user/:userPage", function (req, res) {
         var page;
         switch (req.params.userPage) {
             case "setting":
@@ -235,12 +254,6 @@ exports.get = function (route, config) {
             //TODO : Front End Partial Load 
         }
         res.render("partials/user/" + req.params.userPage, {
-            name: req.session.userData.name,
-            config: config
-        });
-    });
-    route.get("/user/createRepo", function (req, res) {
-        res.render("user/createRepo", {
             name: req.session.userData.name,
             config: config
         });

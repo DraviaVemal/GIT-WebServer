@@ -1,0 +1,48 @@
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link" href="{{config.gitURL}}/{{repoName}}/readme">Read Me</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{config.gitURL}}/{{repoName}}/files">Files</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="{{config.gitURL}}/{{repoName}}/branches">Branch</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{config.gitURL}}/{{repoName}}/setting">Setting</a>
+    </li>
+</ul>
+{{#if verify}}
+<div class="row">
+    <div class="col-md-12">
+        Head Branch:
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>{{branchName}}</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        branches:
+        <table class="table">
+            <thead>
+                {{#each branches}}
+                <tr>
+                    <td>{{this}}</td>
+                </tr>
+                {{/each}}
+            </thead>
+        </table>
+    </div>
+</div>
+{{else}}
+<div class="row">
+    <div class="col-md-12 text-center">
+        This repository is empty
+    </div>
+</div>
+{{/if}}

@@ -112,27 +112,25 @@ exports.server = function (Config) {
             }
             if (!sslFiles.key) {
                 config.enableSSL = false;
-                if (config.logging) {
-                    console.log("----------------------- Warning -----------------------");
-                    console.log("No valid certificate files provided to enable ssl");
-                    console.log("Disabling 'enableSSL' flag internally.");
-                    console.log("-------------------------------------------------------");
-                }
+                console.log("----------------------- Warning -----------------------");
+                console.log("No valid certificate files provided to enable ssl");
+                console.log("Disabling 'enableSSL' flag internally.");
+                console.log("-------------------------------------------------------");
             }
         }
         var sessionDatabaseConnection;
         if (config.database == "Mongo") {
             var mongoURI = "mongodb://" + config.dbURL + "/" + config.dbName;
             if (config.dbUser != "" && config.dbPassword != "") {
-                if (config.logging) console.log("Attempting MongoDB login with provided credentials...");
+                console.log("Attempting MongoDB login with provided credentials...");
                 mongoURI = "mongodb://" + config.dbUser + ":" + config.dbPassword + "@" + config.dbURL + "/" + config.dbName;
             }
             var connection = mongoDB.createConnection(mongoURI, {},
                 function (err) {
                     if (err) {
-                        if (config.logging) console.log("Error Connecting MongoDB " + err);
+                        console.log("Error Connecting MongoDB " + err);
                     } else {
-                        if (config.logging) console.log("MongoDB Connection established");
+                        console.log("MongoDB Connection established");
                     }
                 }
             );

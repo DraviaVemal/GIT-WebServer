@@ -59,7 +59,7 @@ exports.getInfoRefs = function (req, res, config) {
     } else {
         service = "gitReceive";
     }
-    var git = spawn(service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName]);
+    var git = spawn(service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName + ".git"]);
     git.stdout.pipe(res);
     git.stderr.on('data', function (data) {
         if (config.logging) console.log("stderr: " + data);
@@ -84,7 +84,7 @@ exports.postReceivePack = function (req, res, config) {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
     res.setHeader('Content-Type', 'application/x-git-receive-pack-result');
-    var git = spawn("gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName]);
+    var git = spawn("gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
     if (req.headers['content-encoding'] == 'gzip') {
         req.pipe(zlib.createGunzip()).pipe(git.stdin);
     } else {
@@ -95,21 +95,10 @@ exports.postReceivePack = function (req, res, config) {
         if (config.logging) console.log("stderr: " + data);
     });
     git.on('exit', function () {
-        var fullGitHistory = require('full-git-history'),
-            checkHistory = require('full-git-history/test/check-history');
-        fullGitHistory([config.repoDir + "/" + repoName + "/", '-o', config.repoDir + "/" + repoName + "/history.json"], function (error) {
-            if (error) {
-                if (config.logging) console.error("Cannot read history: " + error.message);
-                return;
-            }
-            //TODO : Validate history need to be organised
-            // if (checkHistory(config.repoDir + "/" + repoName + "/history.json")) {
-            //     if (config.logging) console.log('No errors in history.');
-            // } else {
-            //     console.log('History has some errors.');
-            // }
-            res.end();
-        });
+        res.end();
+        exports.syncRepo(req, res, {
+            repo: repoName
+        }, config);
     });
 };
 
@@ -128,7 +117,7 @@ exports.postUploadPack = function (req, res, config) {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
     res.setHeader('Content-Type', 'application/x-git-upload-pack-result');
-    var git = spawn("gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName]);
+    var git = spawn("gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
     if (req.headers['content-encoding'] == 'gzip') {
         req.pipe(zlib.createGunzip()).pipe(git.stdin);
     } else {
@@ -155,16 +144,19 @@ exports.gitInit = function (req, res, config) {
         var data = {
             repo: req.body.repo,
             createdUser: req.session.userData.userNameDisplay,
-            url: req.protocol + "://" + req.host + config.gitURL + "/" + req.body.repo,
+            url: req.protocol + "://" + req.host + config.gitURL + "/" + req.body.repo + ".git",
             private: privateRepo,
             description: req.body.repoDescription
         };
         gitDB.gitRepoCreate(req, res, data, config, function (req, res, config) {
             var fileSystem = require("fs");
-            if (!fileSystem.existsSync(config.repoDir + "/" + req.body.repo)) {
-                fileSystem.mkdirSync(config.repoDir + "/" + req.body.repo);
+            if (!fileSystem.existsSync(config.repoDir + "/" + data.repo + ".git")) {
+                fileSystem.mkdirSync(config.repoDir + "/" + data.repo + ".git");
             }
-            var simpleGit = require('simple-git')(config.repoDir + "/" + req.body.repo + "/");
+            if (fileSystem.existsSync(config.repoDir + "/" + data.repo)) {
+                fileSystem.rmdirSync(config.repoDir + "/" + data.repo);
+            }
+            var simpleGit = require('simple-git')(config.repoDir + "/" + data.repo + ".git" + "/");
             simpleGit.init(true, function (err) {
                 if (err) {
                     if (config.logging) {
@@ -173,23 +165,16 @@ exports.gitInit = function (req, res, config) {
                         res.send();
                     }
                 } else {
-                    var fullGitHistory = require('full-git-history'),
-                        checkHistory = require('full-git-history/test/check-history');
-                    fullGitHistory([config.repoDir + "/" + data.repo + "/", '-o', config.repoDir + "/" + data.repo + "/history.json"], function (error) {
-                        if (error) {
-                            if (config.logging) console.error("Cannot read history: " + error.message);
-                            return;
+                    res.redirect(config.gitURL + "/" + config.gitRepo.repo + "/readme");
+                    simpleGit.clone(config.dirname + "/" + config.repoDir + "/" + data.repo + ".git", config.dirname + "/" + config.repoDir + "/" + data.repo, [], function (err) {
+                        if (err) {
+                            if (config.logging) console.log(err);
+                        } else {
+                            if (config.logging) console.log("Git clone for new repo completed");
+                            exports.syncRepo(req, res, data, config);
                         }
-                        //TODO : Validate history need to be organised
-                        // if (checkHistory(config.repoDir + "/" + repoName + "/history.json")) {
-                        //     if (config.logging) console.log('No errors in history.');
-                        // } else {
-                        //     console.log('History has some errors.');
-                        // }
-                        res.redirect(config.gitURL + "/" + config.gitRepo.repo+"/readme");
                     });
                 }
-
             });
         });
     } else {
@@ -228,5 +213,37 @@ exports.deleteRepo = function (req, res, config) {
         if (config.logging) console.log("Error : No Repo name received in delete");
         res.status(403);
         res.send();
+    }
+};
+/**
+ * Delete the Git repository from DB and File System
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} config Master Configuration JSON
+ * @param  {{repo:String,outputFile:String}} data Required data
+ * @param {object} next Execute at sucessful execution functuin(res,data,config)
+ */
+exports.syncRepo = function (req, res, data, config, next) {
+    var fullGitHistory = require('full-git-history'),
+        checkHistory = require('full-git-history/test/check-history');
+    data.outputFile = data.outputFile || "history.json";
+    fullGitHistory([config.repoDir + "/" + data.repo + ".git/", '-o', config.repoDir + "/" + data.repo + ".git/" + data.outputFile], function (error) {
+        if (error) {
+            if (config.logging) console.error("Cannot read history: " + error.message);
+        } else {
+            if (next) {
+                next(req, res, config);
+            }
+        }
+    });
+    if (req.body.repoReadMe != "") { // Avoid pull on created empty repository
+        var simpleGit = require('simple-git')(config.repoDir + "/" + data.repo + "/");
+        simpleGit.pull(function (err) {
+            if (err) {
+                if (config.logging) console.log(err);
+            } else {
+                if (config.logging) console.log("Repo : " + data.repo + " Sync completed");
+            }
+        });
     }
 };

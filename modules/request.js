@@ -172,15 +172,15 @@ exports.get = function (route, config) {
                 var branchesCommits = require("./branchesCommits");
                 details = branchesCommits.generalDetails(config, req.params.repoName);
                 var verify = false;
-                if(details.head){
-                    verify = true;        
+                if (details.head) {
+                    verify = true;
                 }
                 page = "repo/branches";
                 if (req.body.opti) {
                     res.render("partials/" + page, {
                         branchName: details.head,
                         branches: details.branches,
-                        verify:verify
+                        verify: verify
                     });
                 }
                 break;
@@ -188,6 +188,20 @@ exports.get = function (route, config) {
                 page = "repo/setting";
                 break;
             case "readme":
+                var fileSystem = require("fs");
+                var markdown = require("markdown").markdown;
+                var path = config.dirname + "/" + config.repoDir + "/" + req.params.repoName + "/README.md";
+                if (fileSystem.existsSync(path)) {
+                    var mdFileData = fileSystem.readFileSync(path, 'utf8');
+                    details.readmeHTML = markdown.toHTML(mdFileData);
+                }else{
+                    details.readmeHTML = '<h3 class="text-center">No README.md file found in repository</h3>';
+                }
+                if (req.body.opti) {
+                    res.render("partials/" + page, {
+                        readmeHTML: details.readmeHTML
+                    });
+                }
                 page = "repo/readme";
                 break;
             default:
@@ -199,7 +213,7 @@ exports.get = function (route, config) {
             repoResult.forEach(function (repoDetails) {
                 if (repoDetails.repo == req.params.repoName) {
                     currentRepoDetails.descripton = repoDetails.description;
-                    currentRepoDetails.url = repoDetails.url + ".git";
+                    currentRepoDetails.url = repoDetails.url;
                     currentRepoDetails.private = repoDetails.private;
                     currentRepoDetails.repo = repoDetails.repo;
                 }
@@ -223,8 +237,9 @@ exports.get = function (route, config) {
                     repoName: currentRepoDetails.repo,
                     branchName: details.head,
                     branches: details.branches,
+                    readmeHTML: details.readmeHTML,
                     config: config,
-                    verify:verify
+                    verify: verify
                 });
             } else {
                 res.redirect("/");

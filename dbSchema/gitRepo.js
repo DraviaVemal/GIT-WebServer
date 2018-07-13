@@ -10,11 +10,11 @@ exports.gitRepo = function (config) {
         return mongoose.models.gitRepo;
     }
     mongoose.Promise = global.Promise;
-    var mongoURI = "mongodb://" + config.dbURL + "/" + config.dbName;
+    var mongoURI = "mongodb://" + config.dbURL + ":" + config.dbPort + "/" + config.dbName;
     if (config.dbUser != "" && config.dbPassword != "") {
         mongoURI = "mongodb://" + config.dbUser + ":" + config.dbPassword + "@" + config.dbURL + "/" + config.dbName;
     }
-    mongoose.connect(mongoURI);
+    mongoose.connect(mongoURI,{ useNewUrlParser: true });
     autoIncrement.initialize(mongoose);
     var gitRepo = new Schema({
         repo: {
@@ -41,6 +41,20 @@ exports.gitRepo = function (config) {
         url: {
             type: String,
             required: true
+        },
+        userList:[{
+            userName:{
+                type:String,
+                require:true
+            },
+            readOnly:{
+                type:Boolean,
+                default:false
+            }
+        }],
+        readOnly:{
+            type:Boolean,
+            default:false
         },
         timeStamp: {
             type: Date,

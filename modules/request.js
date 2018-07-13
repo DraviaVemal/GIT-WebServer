@@ -16,7 +16,7 @@ exports.userValidation = function (route, config) {
     });
     //Git login verification
     var gitRequest = false;
-    route.all(config.gitURL + "/:repoName.git/?*", function (req, res, next) {
+    route.all(config.gitURL + "/:repoName.git*", function (req, res, next) {
         if (req.params.repoName) {
             if ("gzip" === req.headers["accept-encoding"] &&
                 "git/" === req.headers["user-agent"].substring(0, 4)) {
@@ -31,7 +31,7 @@ exports.userValidation = function (route, config) {
         }
     });
     //user login verification
-    route.all(config.gitURL + "/:repoName/?*", function (req, res, next) {
+    route.all(config.gitURL + "/:repoName*", function (req, res, next) {
         if (!gitRequest) {
             if (validation.loginValidation(req, res, config)) {
                 next(); //TODO
@@ -45,6 +45,17 @@ exports.userValidation = function (route, config) {
     //Git/Web Access Control
     route.all(config.gitURL + "(/:repoName)?(*)", function (req, res, next) {
         if (req.params.repoName) {
+            var data = {
+                authorised:false,
+                owner:false, //Has access to repository settings
+                private:false,
+                userList:[{
+                    userName:"",
+                    readOnly:true
+                }],
+                readOnly:true
+            };
+            config.repoAccess = data;
             next(); //TODO
         } else {
             res.redirect("/");
@@ -72,6 +83,9 @@ exports.staticFile = function (route, config) {
     });
     route.get("/bootstrap.js", function (req, res) {
         res.sendFile(config.dirname + "/public/js/bootstrap.min.js");
+    });
+    route.get("/bootbox.js", function (req, res) {
+        res.sendFile(config.dirname + "/public/js/bootbox.min.js");
     });
     route.get("/home.js", function (req, res) {
         res.sendFile(config.dirname + "/public/js/home.js");
@@ -171,7 +185,7 @@ exports.get = function (route, config) {
             case "branches":
                 var branchesCommits = require("./branchesCommits");
                 details = branchesCommits.generalDetails(config, req.params.repoName);
-                var verify = false;
+                var verify = false; //Check for empty repository
                 if (details.head) {
                     verify = true;
                 }
@@ -186,6 +200,22 @@ exports.get = function (route, config) {
                 break;
             case "setting":
                 page = "repo/setting";
+                if (req.body.opti) {
+                    gitRepo.findOne({
+                        repo: req.params.repoName
+                    }, req, res, config, function (req, res, config, repoResult) {
+                        var setting = false;
+                        if (repoResult.createdUser.toUpperCase() == req.session.userData.userName) {
+                            setting = true;
+                        }
+                        res.render("partials/" + page, {
+                            branchName: details.head,
+                            branches: details.branches,
+                            setting: setting,
+                            verify: verify
+                        });
+                    });
+                }
                 break;
             case "readme":
                 var fileSystem = require("fs");
@@ -194,7 +224,7 @@ exports.get = function (route, config) {
                 if (fileSystem.existsSync(path)) {
                     var mdFileData = fileSystem.readFileSync(path, 'utf8');
                     details.readmeHTML = markdown.toHTML(mdFileData);
-                }else{
+                } else {
                     details.readmeHTML = '<h3 class="text-center">No README.md file found in repository</h3>';
                 }
                 if (req.body.opti) {
@@ -216,6 +246,9 @@ exports.get = function (route, config) {
                     currentRepoDetails.url = repoDetails.url;
                     currentRepoDetails.private = repoDetails.private;
                     currentRepoDetails.repo = repoDetails.repo;
+                    if (repoDetails.createdUser.toUpperCase() == req.session.userData.userName) {
+                        currentRepoDetails.setting = true;
+                    }
                 }
             });
             if (currentRepoDetails.url) {
@@ -239,6 +272,7 @@ exports.get = function (route, config) {
                     branches: details.branches,
                     readmeHTML: details.readmeHTML,
                     config: config,
+                    setting: currentRepoDetails.setting,
                     verify: verify
                 });
             } else {
@@ -311,8 +345,12 @@ exports.post = function (route, config) {
                         res.status(403);
                         res.send();
                     } else {
+                        var accessData = {
+                            ServerControlPannel:true,
+                            userControl:true,
+                        };
                         req.session.active = true;
-                        req.session.access = {};
+                        req.session.access = accessData;
                         req.session.userData = {
                             name: config.result.name,
                             userName: config.result.userName,
@@ -380,18 +418,10 @@ exports.post = function (route, config) {
         });
     });
     route.post("/user/createRepo", function (req, res) {
-        if (validation.loginValidation(req, res, config)) {
-            git.gitInit(req, res, config);
-        } else {
-            unAuthorisedRequest(config, res);
-        }
+        git.gitInit(req, res, config);
     });
-    route.post("/user/deleteRepo", function (req, res) {
-        if (validation.loginValidation(req, res, config)) {
-            git.deleteRepo(req, res, config);
-        } else {
-            unAuthorisedRequest(config, res);
-        }
+    route.post("/user/setting", function (req, res) {
+        git.deleteRepo(req, res, config);
     });
     return route;
 };

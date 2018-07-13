@@ -2,12 +2,15 @@ exports.mailToken = function (config) {
     var mongoose = require("mongoose"),
         Schema = mongoose.Schema,
         autoIncrement = require("mongoose-auto-increment-fix");
+        if (mongoose.models && mongoose.models.mailToken) {
+            return mongoose.models.mailToken;
+        }
     mongoose.Promise = global.Promise;
-    var mongoURI = "mongodb://" + config.dbURL + "/" + config.dbName;
+    var mongoURI = "mongodb://" + config.dbURL + ":" + config.dbPort + "/" + config.dbName;
     if (config.dbUser != "" && config.dbPassword != "") {
         mongoURI = "mongodb://" + config.dbUser + ":" + config.dbPassword + "@" + config.dbURL + "/" + config.dbName;
     }
-    mongoose.connect(mongoURI);
+    mongoose.connect(mongoURI,{ useNewUrlParser: true });
     autoIncrement.initialize(mongoose);
     var mailToken = new Schema({
         timestamp: {

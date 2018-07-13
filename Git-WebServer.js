@@ -27,6 +27,7 @@
  * @property {bool} logging console logging control - Default : true
  * @property {String} dbName Name of the Database - Default : GitWebServer
  * @property {String} dbURL URL to reach Database Server - Default : localhost
+ * @property {Integer} dbPort URL to reach Database Server - Default : 27017
  * @property {String} dbUser Database access username - Default : ""
  * @property {String} dbPassword Database access password - Default : ""
  * @property {String} database Type of database you choose - Default : "Mongo"
@@ -50,6 +51,7 @@ exports.server = function (Config) {
         config.appName = config.appName || "Git-WebServer";
         config.dbName = config.dbName || "GitWebServer";
         config.dbURL = config.dbURL || "localhost";
+        config.dbPort = config.dbPort || 27017;
         config.dbUser = config.dbUser || "";
         config.dbPassword = config.dbPassword || "";
         config.database = config.database || "Mongo";
@@ -120,12 +122,12 @@ exports.server = function (Config) {
         }
         var sessionDatabaseConnection;
         if (config.database == "Mongo") {
-            var mongoURI = "mongodb://" + config.dbURL + "/" + config.dbName;
+            var mongoURI = "mongodb://" + config.dbURL + ":" + config.dbPort + "/" + config.dbName;
             if (config.dbUser != "" && config.dbPassword != "") {
                 console.log("Attempting MongoDB login with provided credentials...");
                 mongoURI = "mongodb://" + config.dbUser + ":" + config.dbPassword + "@" + config.dbURL + "/" + config.dbName;
             }
-            var connection = mongoDB.createConnection(mongoURI, {},
+            var connection = mongoDB.createConnection(mongoURI,{ useNewUrlParser: true },
                 function (err) {
                     if (err) {
                         console.log("Error Connecting MongoDB " + err);
@@ -208,11 +210,13 @@ exports.server = function (Config) {
             });
             https.createServer(sslFiles, expressServer).listen(443, function () {
                 console.log(config.appName + " Running at Port : 443");
+                performanceOptimiser(config);
             });
         } else {
             //starts standard HTTP server
             expressServer.listen(config.port, function () {
                 console.log(config.appName + " Running at Port : " + config.port);
+                performanceOptimiser(config);
             });
         }
     } else {
@@ -221,3 +225,14 @@ exports.server = function (Config) {
         console.log("Git-WebServer Launch Terminated.");
     }
 };
+
+function performanceOptimiser(config) {
+    var accessCntrl = require("./dbSchema/accessCntrl");
+    var gitRepo = require("./dbSchema/gitRepo");
+    var token = require("./dbSchema/token");
+    var user = require("./dbSchema/user");
+    accessCntrl.accessCntrl(config);
+    gitRepo.gitRepo(config);
+    token.mailToken(config);
+    user.users(config);
+}

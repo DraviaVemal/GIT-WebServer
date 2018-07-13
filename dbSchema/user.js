@@ -11,11 +11,11 @@ exports.users = function (config) {
         return mongoose.models.users;
     }
     mongoose.Promise = global.Promise;
-    var mongoURI = "mongodb://" + config.dbURL + "/" + config.dbName;
+    var mongoURI = "mongodb://" + config.dbURL + ":" + config.dbPort + "/" + config.dbName;
     if (config.dbUser != "" && config.dbPassword != "") {
         mongoURI = "mongodb://" + config.dbUser + ":" + config.dbPassword + "@" + config.dbURL + "/" + config.dbName;
     }
-    mongoose.connect(mongoURI);
+    mongoose.connect(mongoURI,{ useNewUrlParser: true });
     autoIncrement.initialize(mongoose);
     var users = new Schema({
         name: {

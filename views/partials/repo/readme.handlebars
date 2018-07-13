@@ -8,9 +8,11 @@
     <li class="nav-item">
         <a class="nav-link" href="{{config.gitURL}}/{{repoName}}/branches">Branch</a>
     </li>
+    {{#if setting}}
     <li class="nav-item">
         <a class="nav-link" href="{{config.gitURL}}/{{repoName}}/setting">Setting</a>
     </li>
+    {{/if}}
 </ul>
 <div class="row">
     <div class="col-md-12">

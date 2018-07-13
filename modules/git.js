@@ -201,8 +201,10 @@ exports.deleteRepo = function (req, res, config) {
             if (fileSystem.existsSync(config.repoDir + "/" + req.body.repo)) {
                 var rimraf = require('rimraf');
                 rimraf(config.repoDir + "/" + req.body.repo, function () {
-                    if (config.logging) console.log("Repositorie deleted successfully");
-                    res.send("done");
+                    rimraf(config.repoDir + "/" + req.body.repo + ".git", function () {
+                        if (config.logging) console.log("Repositorie deleted successfully");
+                        res.send("done");
+                    });
                 });
             } else {
                 if (config.logging) console.log("Repositorie not found");

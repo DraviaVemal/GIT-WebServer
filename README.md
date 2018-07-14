@@ -1,11 +1,11 @@
 # Message
-    Under Development wait for release v0.1.0
+    Under Development wait for release v1.0.0
 
 # Description
     Web base version control system backed by GIT.
 
 # Scope
-    Release v0.1.0
+    Release v1.0.0
     -Windows support
     -Mongo Database
     -Self authentication system

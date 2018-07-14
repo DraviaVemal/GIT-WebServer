@@ -95,6 +95,9 @@ exports.server = function (Config) {
         if (!fileSystem.existsSync("./" + config.repoDir)) {
             fileSystem.mkdirSync("./" + config.repoDir);
         }
+        if (!fileSystem.existsSync(config.dirname + "/" + config.repoDir)) {
+            fileSystem.mkdirSync(config.dirname + "/" + config.repoDir);
+        }
         var sslFiles = {};
         if (config.enableSSL) {
             if (validation.variableNotEmpty(config.sslProperties.key) &&
@@ -127,7 +130,9 @@ exports.server = function (Config) {
                 console.log("Attempting MongoDB login with provided credentials...");
                 mongoURI = "mongodb://" + config.dbUser + ":" + config.dbPassword + "@" + config.dbURL + "/" + config.dbName;
             }
-            var connection = mongoDB.createConnection(mongoURI,{ useNewUrlParser: true },
+            var connection = mongoDB.createConnection(mongoURI, {
+                    useNewUrlParser: true
+                },
                 function (err) {
                     if (err) {
                         console.log("Error Connecting MongoDB " + err);
@@ -162,12 +167,15 @@ exports.server = function (Config) {
         expressServer.engine(
             "handlebars",
             expressHandlebars({
-                defaultLayout: "default"
+                defaultLayout: "default",
+                partialsDir: config.dirname + '/views/partials',
+                layoutsDir: config.dirname + '/views/layouts'
             })
         );
         expressServer.set("view engine", "handlebars");
+        expressServer.set('views', config.dirname + '/views');
         expressServer.disable("x-powered-by");
-        expressServer.use(express.static(__dirname + "./public"));
+        expressServer.use(express.static(config.dirname + "./public"));
         expressServer.use(bodyParser.urlencoded({
             extended: false
         }));

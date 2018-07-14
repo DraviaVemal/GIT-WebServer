@@ -59,7 +59,7 @@ exports.getInfoRefs = function (req, res, config) {
     } else {
         service = "gitReceive";
     }
-    var git = spawn(service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName + ".git"]);
+    var git = spawn(config.dirname + "/" + service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName + ".git"]);
     git.stdout.pipe(res);
     git.stderr.on('data', function (data) {
         if (config.logging) console.log("stderr: " + data);
@@ -84,7 +84,7 @@ exports.postReceivePack = function (req, res, config) {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
     res.setHeader('Content-Type', 'application/x-git-receive-pack-result');
-    var git = spawn("gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+    var git = spawn(config.dirname + "/" + "gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
     if (req.headers['content-encoding'] == 'gzip') {
         req.pipe(zlib.createGunzip()).pipe(git.stdin);
     } else {
@@ -117,7 +117,7 @@ exports.postUploadPack = function (req, res, config) {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
     res.setHeader('Content-Type', 'application/x-git-upload-pack-result');
-    var git = spawn("gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+    var git = spawn(config.dirname + "/" + "gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
     if (req.headers['content-encoding'] == 'gzip') {
         req.pipe(zlib.createGunzip()).pipe(git.stdin);
     } else {
@@ -166,7 +166,7 @@ exports.gitInit = function (req, res, config) {
                     }
                 } else {
                     res.redirect(config.gitURL + "/" + config.gitRepo.repo + "/readme");
-                    simpleGit.clone(config.dirname + "/" + config.repoDir + "/" + data.repo + ".git", config.dirname + "/" + config.repoDir + "/" + data.repo, [], function (err) {
+                    simpleGit.clone(config.appRoutePath + "/" + config.repoDir + "/" + data.repo + ".git", config.dirname + "/" + config.repoDir + "/" + data.repo, [], function (err) {
                         if (err) {
                             if (config.logging) console.log(err);
                         } else {
@@ -239,7 +239,7 @@ exports.syncRepo = function (req, res, data, config, next) {
         }
     });
     if (req.body.repoReadMe != "") { // Avoid pull on created empty repository
-        var simpleGit = require('simple-git')(config.repoDir + "/" + data.repo + "/");
+        var simpleGit = require('simple-git')(config.dirname + "/" + config.repoDir + "/" + data.repo + "/");
         simpleGit.pull(function (err) {
             if (err) {
                 if (config.logging) console.log(err);

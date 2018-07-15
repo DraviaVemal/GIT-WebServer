@@ -1,2 +1,2 @@
-#!/bin/bash
-git upload-pack "$*"
+command="git upload-pack $*"
+exec $command

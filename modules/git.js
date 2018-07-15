@@ -38,7 +38,6 @@ exports.checkAuth = function (req, res, next, config) {
  */
 exports.getInfoRefs = function (req, res, config) {
     var childProcess = require('child_process');
-    var fileSystem = require("fs");
     var spawn = childProcess.spawn;
     var service = req.query.service;
     var repoName = req.params.repoName;
@@ -62,11 +61,9 @@ exports.getInfoRefs = function (req, res, config) {
     }
     var git;
     if (process.platform === "win32") {
-        fileSystem.chmodSync(config.dirname + "/" + service + ".cmd",555);
         git = spawn(config.dirname + "/" + service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName + ".git"]);
     } else if (process.platform === "linux") {
-        fileSystem.chmodSync(config.dirname + "/" + service + ".sh",555);
-        git = spawn(config.dirname + "/" + service + ".sh", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName + ".git"]);
+        git = spawn(config.dirname + "/" + service + ".sh", ["--stateless-rpc", "--advertise-refs", config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git"]);
     } else {
         res.status(503);
         res.send();
@@ -88,7 +85,6 @@ exports.getInfoRefs = function (req, res, config) {
  */
 exports.postReceivePack = function (req, res, config) {
     var childProcess = require('child_process');
-    var fileSystem = require("fs");
     var spawn = childProcess.spawn;
     var repoName = req.params.repoName;
     if (config.logging) console.log('POST git-receive-pack / ' + repoName);
@@ -98,11 +94,9 @@ exports.postReceivePack = function (req, res, config) {
     res.setHeader('Content-Type', 'application/x-git-receive-pack-result');
     var git;
     if (process.platform === "win32") {
-        fileSystem.chmodSync(config.dirname + "/" + "gitReceive.cmd",555);
         git = spawn(config.dirname + "/" + "gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
     } else if (process.platform === "linux") {
-        fileSystem.chmodSync(config.dirname + "/" + "gitReceive.sh",555);
-        git = spawn(config.dirname + "/" + "gitReceive.sh", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+        git = spawn(config.dirname + "/" + "gitReceive.sh", ["--stateless-rpc", config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git"]);
     } else {
         res.status(503);
         res.send();
@@ -132,7 +126,6 @@ exports.postReceivePack = function (req, res, config) {
  */
 exports.postUploadPack = function (req, res, config) {
     var childProcess = require('child_process');
-    var fileSystem = require("fs");
     var spawn = childProcess.spawn;
     var repoName = req.params.repoName;
     if (config.logging) console.log('POST git-upload-pack / ' + repoName);
@@ -142,11 +135,9 @@ exports.postUploadPack = function (req, res, config) {
     res.setHeader('Content-Type', 'application/x-git-upload-pack-result');
     var git;
     if (process.platform === "win32") {
-        fileSystem.chmodSync(config.dirname + "/" + "gitUpload.cmd",555);
         git = spawn(config.dirname + "/" + "gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
     } else if (process.platform === "linux") {
-        fileSystem.chmodSync(config.dirname + "/" + "gitUpload.sh",555);
-        git = spawn(config.dirname + "/" + "gitUpload.sh", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+        git = spawn(config.dirname + "/" + "gitUpload.sh", ["--stateless-rpc", config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git"]);
     } else {
         res.status(503);
         res.send();
@@ -237,7 +228,7 @@ exports.deleteRepo = function (req, res, config) {
                     //TODO : Logging system
                 });
             }
-            if(fileSystem.existsSync(config.repoDir + "/" + data.repo)){
+            if (fileSystem.existsSync(config.repoDir + "/" + data.repo)) {
                 rimraf(config.appRoutePath + "/" + config.repoDir + "/" + data.repo + ".git", function () {
                     if (config.logging) console.log("Repositorie deleted successfully");
                 });

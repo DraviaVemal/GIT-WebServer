@@ -1,2 +1,2 @@
-#!/bin/bash
-git receive-pack "$*"
+command="git receive-pack $*"
+exec $command

@@ -238,8 +238,16 @@ function performanceOptimiser(config) {
     var gitRepo = require("./dbSchema/gitRepo");
     var token = require("./dbSchema/token");
     var user = require("./dbSchema/user");
+    var fileSystem = require("fs");
     accessCntrl.accessCntrl(config);
     gitRepo.gitRepo(config);
     token.mailToken(config);
     user.users(config);
+    if (process.platform === "win32") {
+        fileSystem.chmodSync(config.dirname + "/" + "gitReceive.cmd",555);
+        fileSystem.chmodSync(config.dirname + "/" + "gitUpload.cmd",555);
+    } else if (process.platform === "linux") {
+        fileSystem.chmodSync(config.dirname + "/" + "gitReceive.sh",555);
+        fileSystem.chmodSync(config.dirname + "/" + "gitUpload.sh",555);
+    }
 }

@@ -420,8 +420,10 @@ exports.post = function (route, config) {
     route.post("/user/createRepo", function (req, res) {
         git.gitInit(req, res, config);
     });
-    route.post("/user/setting", function (req, res) {
-        git.deleteRepo(req, res, config);
+    route.post(config.gitURL + "/:repoName/setting", function (req, res) {
+        if(req.body.repoName){
+            git.deleteRepo(req, res, config);
+        }
     });
     return route;
 };

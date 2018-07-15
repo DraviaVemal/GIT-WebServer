@@ -1,4 +1,4 @@
-exports.webServer = function (appRoutePath) {
+module.exports = function (appRoutePath) {
     config = {};
     var uidGenerator = require('node-unique-id-generator');
     var fileSystem = require('fs');

@@ -59,7 +59,15 @@ exports.getInfoRefs = function (req, res, config) {
     } else {
         service = "gitReceive";
     }
-    var git = spawn(config.dirname + "/" + service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName + ".git"]);
+    var git;
+    if (process.platform === "win32") {
+        git = spawn(config.dirname + "/" + service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName + ".git"]);
+    } else if (process.platform === "linux") {
+        git = spawn(config.dirname + "/" + service + ".sh", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName + ".git"]);
+    } else {
+        res.status(503);
+        res.send();
+    }
     git.stdout.pipe(res);
     git.stderr.on('data', function (data) {
         if (config.logging) console.log("stderr: " + data);
@@ -84,7 +92,15 @@ exports.postReceivePack = function (req, res, config) {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
     res.setHeader('Content-Type', 'application/x-git-receive-pack-result');
-    var git = spawn(config.dirname + "/" + "gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+    var git;
+    if (process.platform === "win32") {
+        git = spawn(config.dirname + "/" + "gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+    } else if (process.platform === "linux") {
+        git = spawn(config.dirname + "/" + "gitReceive.sh", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+    } else {
+        res.status(503);
+        res.send();
+    }
     if (req.headers['content-encoding'] == 'gzip') {
         req.pipe(zlib.createGunzip()).pipe(git.stdin);
     } else {
@@ -117,7 +133,15 @@ exports.postUploadPack = function (req, res, config) {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
     res.setHeader('Content-Type', 'application/x-git-upload-pack-result');
-    var git = spawn(config.dirname + "/" + "gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+    var git;
+    if (process.platform === "win32") {
+        git = spawn(config.dirname + "/" + "gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+    } else if (process.platform === "linux") {
+        git = spawn(config.dirname + "/" + "gitUpload.sh", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+    } else {
+        res.status(503);
+        res.send();
+    }
     if (req.headers['content-encoding'] == 'gzip') {
         req.pipe(zlib.createGunzip()).pipe(git.stdin);
     } else {
@@ -191,25 +215,27 @@ exports.gitInit = function (req, res, config) {
  */
 exports.deleteRepo = function (req, res, config) {
     var validation = require("./validation");
-    if (validation.variableNotEmpty(req.body.repo)) {
+    if (validation.variableNotEmpty(req.params.repoName)) {
         var gitDB = require("../dbSchema/gitRepo");
         var data = {
-            repo: req.body.repo
+            repo: req.params.repoName
         };
         gitDB.gitRepoDelete(req, res, data, config, function () {
             var fileSystem = require("fs");
-            if (fileSystem.existsSync(config.repoDir + "/" + req.body.repo)) {
-                var rimraf = require('rimraf');
-                rimraf(config.repoDir + "/" + req.body.repo, function () {
-                    rimraf(config.repoDir + "/" + req.body.repo + ".git", function () {
-                        if (config.logging) console.log("Repositorie deleted successfully");
-                        res.send("done");
-                    });
+            var rimraf = require('rimraf');
+            if (fileSystem.existsSync(config.dirname + "/" + config.repoDir + "/" + data.repo)) {
+                rimraf(config.dirname + "/" + config.repoDir + "/" + data.repo, function () {
+                    //TODO : Logging system
                 });
-            } else {
-                if (config.logging) console.log("Repositorie not found");
-                res.send("done");
             }
+            if(fileSystem.existsSync(config.repoDir + "/" + data.repo)){
+                rimraf(config.appRoutePath + "/" + config.repoDir + "/" + data.repo + ".git", function () {
+                    if (config.logging) console.log("Repositorie deleted successfully");
+                });
+            }
+            //TODO : Repo deletion msg feedback
+            res.redirect("/");
+            //TODO : Error handling
         });
     } else {
         if (config.logging) console.log("Error : No Repo name received in delete");

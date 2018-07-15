@@ -1,6 +1,6 @@
 {
   "name": "git-webserver",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Web Server Integrated GIT Version Control System",
   "main": "server.js",
   "scripts": {
@@ -13,7 +13,9 @@
   "keywords": [
     "GIT",
     "NodeJS",
-    "Server"
+    "Server",
+    "Git Server",
+    "Git WebServer"
   ],
   "author": "Dravia Vemal, Velavan",
   "license": "LGPL-3.0",

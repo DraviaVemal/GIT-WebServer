@@ -1,2 +1,2 @@
 #!/bin/bash
-git receive-pack "$1"
+git receive-pack "$*"

@@ -1,6 +1,13 @@
 # Message
     Under Development wait for release v1.0.0
 
+#Beta version instalation
+    npm i git-webserver
+
+#Beta version deployment
+    In "index.js"
+    require("git-webserver")(__dirname);
+
 # Description
     Web base version control system backed by GIT.
 
@@ -17,11 +24,11 @@
 
 # Supported Platform
     Windows
+    Linux
 
-# Dev Environment Setup
-    Sotware Requirement
+# Pre-Requirement
         Node JS
-        Git SCM for windows
+        Git SCM
         Visual Studio Code
         MongoDB (Local setup optional)
 

@@ -286,6 +286,17 @@ exports.get = function (route, config) {
             config: config
         });
     });
+    route.get("/user/controlPannel",function(req,res){
+        res.render("user/controlPannel",{
+            helpers:{
+                getPage:function(){
+                    return "controlPannel/configuration";
+                }
+            },
+            name: req.session.userData.name,
+            config: config
+        });
+    });
     route.get("/user/:userPage", function (req, res) {
         var page;
         switch (req.params.userPage) {

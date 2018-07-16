@@ -21,8 +21,6 @@
  * @property {Integer} port Server Port Number - Default : 80
  * @property {String} gitURL Git Specific URL - Default : /git
  * @property {String} repoDir Git repository folder name - Default : repos
- * @property {Object} repositories List of repository JSON objects - Default : {}
- * @property {Array} defaultUsers Array of user funcion object - Default : []
  * @property {String} appName Application Name - Default : Git-WebServer
  * @property {bool} logging console logging control - Default : true
  * @property {String} dbName Name of the Database - Default : GitWebServer
@@ -32,6 +30,8 @@
  * @property {String} dbPassword Database access password - Default : ""
  * @property {String} database Type of database you choose - Default : "Mongo"
  * @property {bool} enableSSL Enable SSL Connection - Default : false
+ * @property {bool} sgMail Enable send grid mail system - Default : false
+ * @property {bool} sgMailApiKey Send grid API key for your account - Default : ""
  * @param {JSON.ssl} sslProperties SSL certificate properties - Default : {}
  * @param {JSON.adv} advProperties SSL certificate properties - Default : {}
  */
@@ -45,8 +45,6 @@ exports.server = function (Config) {
         var config = Config;
         config.port = config.port || 80;
         config.gitURL = config.gitURL || "/git";
-        config.repositories = config.repositories || {};
-        config.defaultUsers = config.defaultUsers || [];
         config.appName = config.appName || "Git-WebServer";
         config.dbName = config.dbName || "GitWebServer";
         config.dbURL = config.dbURL || "localhost";
@@ -55,6 +53,8 @@ exports.server = function (Config) {
         config.dbPassword = config.dbPassword || "";
         config.database = config.database || "Mongo";
         config.enableSSL = config.enableSSL || false;
+        config.sgMail = config.sgMail || false;
+        config.sgMailApiKey = config.sgMailApiKey || "";
         config.sslProperties = config.sslProperties || {};
         config.sslProperties.pemKey = config.sslProperties.pemKey || "";
         config.sslProperties.pemCert = config.sslProperties.pemCert || "";

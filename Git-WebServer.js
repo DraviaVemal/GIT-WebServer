@@ -45,7 +45,6 @@ exports.server = function (Config) {
         var config = Config;
         config.port = config.port || 80;
         config.gitURL = config.gitURL || "/git";
-        config.repoDir = config.repoDir || "repos";
         config.repositories = config.repositories || {};
         config.defaultUsers = config.defaultUsers || [];
         config.appName = config.appName || "Git-WebServer";
@@ -66,7 +65,6 @@ exports.server = function (Config) {
         config.advProperties.sessionName = config.advProperties.sessionName || "SID";
         config.advProperties.cookieChecksumName = config.advProperties.cookieChecksumName || "SSID";
         config.advProperties.criptoSalt = config.advProperties.criptoSalt || 10;
-        config.dirname = __dirname;
         if (config.logging) {
             console.log("Git-WebServer is initailising with below configuration");
             console.log(config);
@@ -92,12 +90,6 @@ exports.server = function (Config) {
         var request = require("./modules/request");
         var mongoStore = require("connect-mongo")(expressSession);
         var expressServer = express();
-        if (!fileSystem.existsSync("./" + config.repoDir)) {
-            fileSystem.mkdirSync("./" + config.repoDir);
-        }
-        if (!fileSystem.existsSync(config.dirname + "/" + config.repoDir)) {
-            fileSystem.mkdirSync(config.dirname + "/" + config.repoDir);
-        }
         var sslFiles = {};
         if (config.enableSSL) {
             if (validation.variableNotEmpty(config.sslProperties.key) &&
@@ -244,10 +236,10 @@ function performanceOptimiser(config) {
     token.mailToken(config);
     user.users(config);
     if (process.platform === "win32") {
-        fileSystem.chmodSync(config.dirname + "/" + "gitReceive.cmd",555);
-        fileSystem.chmodSync(config.dirname + "/" + "gitUpload.cmd",555);
+        fileSystem.chmodSync(config.dirname + "/scripts/gitReceive.cmd", 555);
+        fileSystem.chmodSync(config.dirname + "/scripts/gitUpload.cmd", 555);
     } else if (process.platform === "linux") {
-        fileSystem.chmodSync(config.dirname + "/" + "gitReceive.sh",555);
-        fileSystem.chmodSync(config.dirname + "/" + "gitUpload.sh",555);
+        fileSystem.chmodSync(config.dirname + "/scripts/gitReceive.sh", 555);
+        fileSystem.chmodSync(config.dirname + "/scripts/gitUpload.sh", 555);
     }
 }

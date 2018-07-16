@@ -61,9 +61,9 @@ exports.getInfoRefs = function (req, res, config) {
     }
     var git;
     if (process.platform === "win32") {
-        git = spawn(config.dirname + "/" + service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName + ".git"]);
+        git = spawn(config.dirname + "/scripts/" + service + ".cmd", ['--stateless-rpc', '--advertise-refs', config.repoDir + "/" + repoName + ".git"]);
     } else if (process.platform === "linux") {
-        git = spawn(config.dirname + "/" + service + ".sh", ["--stateless-rpc", "--advertise-refs", config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git"]);
+        git = spawn(config.dirname + "/scripts/" + service + ".sh", ["--stateless-rpc", "--advertise-refs", config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git"]);
     } else {
         res.status(503);
         res.send();
@@ -94,9 +94,9 @@ exports.postReceivePack = function (req, res, config) {
     res.setHeader('Content-Type', 'application/x-git-receive-pack-result');
     var git;
     if (process.platform === "win32") {
-        git = spawn(config.dirname + "/" + "gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+        git = spawn(config.dirname + "/scripts/" + "gitReceive.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
     } else if (process.platform === "linux") {
-        git = spawn(config.dirname + "/" + "gitReceive.sh", ["--stateless-rpc", config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git"]);
+        git = spawn(config.dirname + "/scripts/" + "gitReceive.sh", ["--stateless-rpc", config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git"]);
     } else {
         res.status(503);
         res.send();
@@ -135,9 +135,9 @@ exports.postUploadPack = function (req, res, config) {
     res.setHeader('Content-Type', 'application/x-git-upload-pack-result');
     var git;
     if (process.platform === "win32") {
-        git = spawn(config.dirname + "/" + "gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
+        git = spawn(config.dirname + "/scripts/" + "gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
     } else if (process.platform === "linux") {
-        git = spawn(config.dirname + "/" + "gitUpload.sh", ["--stateless-rpc", config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git"]);
+        git = spawn(config.dirname + "/scripts/" + "gitUpload.sh", ["--stateless-rpc", config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git"]);
     } else {
         res.status(503);
         res.send();
@@ -168,7 +168,7 @@ exports.gitInit = function (req, res, config) {
         var data = {
             repo: req.body.repo,
             createdUser: req.session.userData.userNameDisplay,
-            url: req.protocol + "://" + req.host + config.gitURL + "/" + req.body.repo + ".git",
+            url: req.protocol + "://" + req.hostname + config.gitURL + "/" + req.body.repo + ".git",
             private: privateRepo,
             description: req.body.repoDescription
         };
@@ -224,14 +224,26 @@ exports.deleteRepo = function (req, res, config) {
             var fileSystem = require("fs");
             var rimraf = require('rimraf');
             if (fileSystem.existsSync(config.dirname + "/" + config.repoDir + "/" + data.repo)) {
-                rimraf(config.dirname + "/" + config.repoDir + "/" + data.repo, function () {
-                    //TODO : Logging system
+                if (config.logging) console.log("Clone repo deletion started");
+                rimraf(config.dirname + "/" + config.repoDir + "/" + data.repo, function (err) {
+                    if (err) {
+                        if (config.logging) console.log(err);
+                    }
                 });
+            } else {
+                if (config.logging) console.log("Repo clone directory not found");
             }
-            if (fileSystem.existsSync(config.repoDir + "/" + data.repo)) {
-                rimraf(config.appRoutePath + "/" + config.repoDir + "/" + data.repo + ".git", function () {
-                    if (config.logging) console.log("Repositorie deleted successfully");
+            if (fileSystem.existsSync(config.appRoutePath + "/" + config.repoDir + "/" + data.repo + ".git")) {
+                if (config.logging) console.log("Repo deletion started");
+                rimraf(config.appRoutePath + "/" + config.repoDir + "/" + data.repo + ".git", function (err) {
+                    if (err) {
+                        if (config.logging) console.log(err);
+                    } else {
+                        if (config.logging) console.log("Repository deleted successfully");
+                    }
                 });
+            } else {
+                if (config.logging) console.log("Repo directory not found");
             }
             //TODO : Repo deletion msg feedback
             res.redirect("/");

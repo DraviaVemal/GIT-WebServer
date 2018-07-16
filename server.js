@@ -38,6 +38,14 @@ module.exports = function (appRoutePath) {
     var gitWebServer = require("./Git-WebServer");
     config.numCPUs = config.numCPUs || numCPUs;
     config.appRoutePath = appRoutePath;
+    config.repoDir = config.repoDir || "repos";
+    config.dirname = __dirname;
+    if (!fileSystem.existsSync("./" + config.repoDir)) {
+        fileSystem.mkdirSync("./" + config.repoDir);
+    }
+    if (!fileSystem.existsSync(config.dirname + "/" + config.repoDir)) {
+        fileSystem.mkdirSync(config.dirname + "/" + config.repoDir);
+    }
     if (cluster.isMaster && config.cluster) {
         console.log("Server Running in Cluster");
         for (var i = 0; i < config.numCPUs; i++) {

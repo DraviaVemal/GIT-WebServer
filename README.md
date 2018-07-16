@@ -1,12 +1,19 @@
 # Message
-    Under Development wait for release v0.1.0
+    Under Development wait for release v1.0.0 for backward compatable updates to start
+
+#Beta version instalation
+    npm i git-webserver
+
+#Beta version deployment
+    In "index.js"
+    require("git-webserver")(__dirname);
 
 # Description
     Web base version control system backed by GIT.
 
 # Scope
-    Release v0.1.0
-    -Windows support
+    Release v1.0.0
+    -Windows/Linux support
     -Mongo Database
     -Self authentication system
     -Basic UI features
@@ -17,21 +24,20 @@
 
 # Supported Platform
     Windows
+    Linux
 
-# Dev Environment Setup
-    Sotware Requirement
+# Pre-Requirement
         Node JS
-        Git SCM for windows
-        Visual Studio Code
+        Git SCM
         MongoDB (Local setup optional)
 
     Dev setup
         1. Git clone to your directory
         2. npm install (install dependencies)
-        3. npm start
+        Visual Studio Code for editor
 
 # Future Scope
-    -Support Linux platform and cloud
+    -Support cloud platform
     -AD authentication system
     -Broad access control over repositories
 

@@ -1,6 +1,6 @@
 {
   "name": "git-webserver",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Web Server Integrated GIT Version Control System",
   "main": "server.js",
   "scripts": {
@@ -13,7 +13,9 @@
   "keywords": [
     "GIT",
     "NodeJS",
-    "Server"
+    "Server",
+    "Git Server",
+    "Git WebServer"
   ],
   "author": "Dravia Vemal, Velavan",
   "license": "LGPL-3.0",
@@ -22,6 +24,7 @@
   },
   "homepage": "https://github.com/DraviaVemal/GIT-WebServer#readme",
   "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
     "bcryptjs": "^2.4.3",
     "child_process": "^1.0.2",
     "connect-mongo": "^2.0.1",
@@ -31,8 +34,9 @@
     "express-session": "^1.15.6",
     "full-git-history": "^1.2.4",
     "http-auth": "^3.2.3",
+    "markdown": "^0.5.0",
     "method-override": "^2.3.10",
-    "mongoose": "^5.1.7",
+    "mongoose": "^5.2.3",
     "mongoose-auto-increment-fix": "^5.0.2",
     "morgan": "^1.9.0",
     "node-unique-id-generator": "^0.1.0",

@@ -5,8 +5,8 @@
  */
 exports.generalDetails = function (config, repoName) {
     var fileSystem = require("fs");
-    if (fileSystem.existsSync(config.dirname + "/" + config.repoDir + "/" + repoName + "/history.json")) {
-        var historyString = fileSystem.readFileSync(config.dirname + "/" + config.repoDir + "/" + repoName + "/history.json");
+    if (fileSystem.existsSync(config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git/history.json")) {
+        var historyString = fileSystem.readFileSync(config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git/history.json");
         var historyJSON = {};
         var branchName = [];
         try {

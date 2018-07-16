@@ -66,3 +66,9 @@ repos/
 #Custom config file
 config.json
 config_broke.json
+
+#VD code development setting
+.vscode
+
+#Dev Files
+dev.js

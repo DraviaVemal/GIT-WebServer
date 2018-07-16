@@ -21,16 +21,17 @@
  * @property {Integer} port Server Port Number - Default : 80
  * @property {String} gitURL Git Specific URL - Default : /git
  * @property {String} repoDir Git repository folder name - Default : repos
- * @property {Object} repositories List of repository JSON objects - Default : {}
- * @property {Array} defaultUsers Array of user funcion object - Default : []
  * @property {String} appName Application Name - Default : Git-WebServer
  * @property {bool} logging console logging control - Default : true
  * @property {String} dbName Name of the Database - Default : GitWebServer
  * @property {String} dbURL URL to reach Database Server - Default : localhost
+ * @property {Integer} dbPort URL to reach Database Server - Default : 27017
  * @property {String} dbUser Database access username - Default : ""
  * @property {String} dbPassword Database access password - Default : ""
  * @property {String} database Type of database you choose - Default : "Mongo"
  * @property {bool} enableSSL Enable SSL Connection - Default : false
+ * @property {bool} sgMail Enable send grid mail system - Default : false
+ * @property {bool} sgMailApiKey Send grid API key for your account - Default : ""
  * @param {JSON.ssl} sslProperties SSL certificate properties - Default : {}
  * @param {JSON.adv} advProperties SSL certificate properties - Default : {}
  */
@@ -44,16 +45,16 @@ exports.server = function (Config) {
         var config = Config;
         config.port = config.port || 80;
         config.gitURL = config.gitURL || "/git";
-        config.repoDir = config.repoDir || "repos";
-        config.repositories = config.repositories || {};
-        config.defaultUsers = config.defaultUsers || [];
         config.appName = config.appName || "Git-WebServer";
         config.dbName = config.dbName || "GitWebServer";
         config.dbURL = config.dbURL || "localhost";
+        config.dbPort = config.dbPort || 27017;
         config.dbUser = config.dbUser || "";
         config.dbPassword = config.dbPassword || "";
         config.database = config.database || "Mongo";
         config.enableSSL = config.enableSSL || false;
+        config.sgMail = config.sgMail || false;
+        config.sgMailApiKey = config.sgMailApiKey || "";
         config.sslProperties = config.sslProperties || {};
         config.sslProperties.pemKey = config.sslProperties.pemKey || "";
         config.sslProperties.pemCert = config.sslProperties.pemCert || "";
@@ -64,7 +65,6 @@ exports.server = function (Config) {
         config.advProperties.sessionName = config.advProperties.sessionName || "SID";
         config.advProperties.cookieChecksumName = config.advProperties.cookieChecksumName || "SSID";
         config.advProperties.criptoSalt = config.advProperties.criptoSalt || 10;
-        config.dirname = __dirname;
         if (config.logging) {
             console.log("Git-WebServer is initailising with below configuration");
             console.log(config);
@@ -90,9 +90,6 @@ exports.server = function (Config) {
         var request = require("./modules/request");
         var mongoStore = require("connect-mongo")(expressSession);
         var expressServer = express();
-        if (!fileSystem.existsSync("./" + config.repoDir)) {
-            fileSystem.mkdirSync("./" + config.repoDir);
-        }
         var sslFiles = {};
         if (config.enableSSL) {
             if (validation.variableNotEmpty(config.sslProperties.key) &&
@@ -112,27 +109,27 @@ exports.server = function (Config) {
             }
             if (!sslFiles.key) {
                 config.enableSSL = false;
-                if (config.logging) {
-                    console.log("----------------------- Warning -----------------------");
-                    console.log("No valid certificate files provided to enable ssl");
-                    console.log("Disabling 'enableSSL' flag internally.");
-                    console.log("-------------------------------------------------------");
-                }
+                console.log("----------------------- Warning -----------------------");
+                console.log("No valid certificate files provided to enable ssl");
+                console.log("Disabling 'enableSSL' flag internally.");
+                console.log("-------------------------------------------------------");
             }
         }
         var sessionDatabaseConnection;
         if (config.database == "Mongo") {
-            var mongoURI = "mongodb://" + config.dbURL + "/" + config.dbName;
+            var mongoURI = "mongodb://" + config.dbURL + ":" + config.dbPort + "/" + config.dbName;
             if (config.dbUser != "" && config.dbPassword != "") {
-                if (config.logging) console.log("Attempting MongoDB login with provided credentials...");
+                console.log("Attempting MongoDB login with provided credentials...");
                 mongoURI = "mongodb://" + config.dbUser + ":" + config.dbPassword + "@" + config.dbURL + "/" + config.dbName;
             }
-            var connection = mongoDB.createConnection(mongoURI, {},
+            var connection = mongoDB.createConnection(mongoURI, {
+                    useNewUrlParser: true
+                },
                 function (err) {
                     if (err) {
-                        if (config.logging) console.log("Error Connecting MongoDB " + err);
+                        console.log("Error Connecting MongoDB " + err);
                     } else {
-                        if (config.logging) console.log("MongoDB Connection established");
+                        console.log("MongoDB Connection established");
                     }
                 }
             );
@@ -162,19 +159,21 @@ exports.server = function (Config) {
         expressServer.engine(
             "handlebars",
             expressHandlebars({
-                defaultLayout: "default"
+                defaultLayout: "default",
+                partialsDir: config.dirname + '/views/partials',
+                layoutsDir: config.dirname + '/views/layouts'
             })
         );
         expressServer.set("view engine", "handlebars");
+        expressServer.set('views', config.dirname + '/views');
         expressServer.disable("x-powered-by");
-        expressServer.use(express.static(__dirname + "./public"));
+        expressServer.use(express.static(config.dirname + "./public"));
         expressServer.use(bodyParser.urlencoded({
             extended: false
         }));
         expressServer.use(methodOverride());
         expressServer.use(express.query());
         if (config.logging) expressServer.use(logging("dev", route));
-        else expressServer.use(logging("tiny", route));
         expressServer.use(request.userValidation(route, config));
         expressServer.use(request.staticFile(route, config));
         expressServer.use(request.get(route, config));
@@ -210,11 +209,13 @@ exports.server = function (Config) {
             });
             https.createServer(sslFiles, expressServer).listen(443, function () {
                 console.log(config.appName + " Running at Port : 443");
+                performanceOptimiser(config);
             });
         } else {
             //starts standard HTTP server
             expressServer.listen(config.port, function () {
                 console.log(config.appName + " Running at Port : " + config.port);
+                performanceOptimiser(config);
             });
         }
     } else {
@@ -223,3 +224,22 @@ exports.server = function (Config) {
         console.log("Git-WebServer Launch Terminated.");
     }
 };
+
+function performanceOptimiser(config) {
+    var accessCntrl = require("./dbSchema/accessCntrl");
+    var gitRepo = require("./dbSchema/gitRepo");
+    var token = require("./dbSchema/token");
+    var user = require("./dbSchema/user");
+    var fileSystem = require("fs");
+    accessCntrl.accessCntrl(config);
+    gitRepo.gitRepo(config);
+    token.mailToken(config);
+    user.users(config);
+    if (process.platform === "win32") {
+        fileSystem.chmodSync(config.dirname + "/scripts/gitReceive.cmd", 555);
+        fileSystem.chmodSync(config.dirname + "/scripts/gitUpload.cmd", 555);
+    } else if (process.platform === "linux") {
+        fileSystem.chmodSync(config.dirname + "/scripts/gitReceive.sh", 555);
+        fileSystem.chmodSync(config.dirname + "/scripts/gitUpload.sh", 555);
+    }
+}

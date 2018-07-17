@@ -22,6 +22,6 @@ will update the config file details documentation ASAP
 
 ### Support or Contact
 
-If you have any issues future or feature request.kindly drop a mail will respond as soon as possible.
+If you have any issues or feature request.kindly drop a mail will respond when time permits.
 
 Mail : [Dravia Vemal](https://www.draviavemal.com) contact@draviavemal.com

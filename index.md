@@ -1,14 +1,16 @@
 ## Welcome to GIT-WebServer Pages
 
-Git-Webserver is a opensource web-based self hostable version control repository service , for source code and development projects that use Git . It is similar to GitHub, but it run's in your server.
+### Message
+    Project is under development to have a stable release of planned features.
+    Planned 1st release will be v1.0.0 before that few beta release will be uploaded to npm.
 
 ### Beta Release v0.3.0
 
 Easy way to deploy Git-WebServer is through node package manager.
 
-    **npm i git-webserver**
+    npm i git-webserver
 
-# Pre-Requirment
+## Pre-Requirment
     NodeJS
     Git-SCM
     MongoDB (Local\Atlas)
@@ -16,6 +18,7 @@ Easy way to deploy Git-WebServer is through node package manager.
 ```setup
 require("git-webserver")(__dirname);
 ```
+will update the config file details documentation ASAP
 
 ### Support or Contact
 

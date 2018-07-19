@@ -504,14 +504,14 @@ exports.post = function (route, config) {
         if (data.password === data.rPassword) {
             userDB.createUser(req, res, data, config, function (req, res, config) {
                 if (config.exist) {
-                    message = '<div class="alert alert-warning" role="alert"><strong>User already exist!</strong></div>';
+                    message = '<div class="alert alert-warning" data-test="signupMessage" role="alert"><strong>User already exist!</strong></div>';
                     res.render("pages/signup", {
                         layout: "public",
                         message: message,
                         config: config
                     });
                 } else {
-                    message = '<div class="alert alert-success" role="alert"><strong>User registration successful</strong></div>';
+                    message = '<div class="alert alert-success" data-test="signupMessage" role="alert"><strong>User registration successful</strong></div>';
                     res.render("pages/login", {
                         layout: "public",
                         message: message,
@@ -522,7 +522,7 @@ exports.post = function (route, config) {
                 }
             });
         } else {
-            message = '<div class="alert alert-info" role="alert"><strong>Password Mis-Match</strong></div>';
+            message = '<div class="alert alert-info" data-test="signupMessage" role="alert"><strong>Password Mis-Match</strong></div>';
             res.render("pages/signup", {
                 layout: "public",
                 name: req.body.name,

@@ -4,7 +4,7 @@
   "description": "Web Server Integrated GIT Version Control System",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node dev.js"
   },
   "repository": {
     "type": "git",
@@ -43,5 +43,8 @@
     "rimraf": "^2.6.2",
     "sass-lint": "^1.12.1",
     "simple-git": "^1.96.0"
+  },
+  "devDependencies": {
+    "cypress": "^3.0.2"
   }
 }

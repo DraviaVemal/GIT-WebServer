@@ -83,7 +83,7 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
         validation.variableNotEmpty(data.url) &&
         validation.variableNotEmpty(data.description)) {
         if (config.database == "Mongo") {
-            var gitRepo = this.gitRepo(config);
+            var gitRepo = exports.gitRepo(config);
             data.logicName = data.repo.toUpperCase();
             gitRepo.create(data, function (err, gitRepo) {
                 if (err) {

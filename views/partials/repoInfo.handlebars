@@ -7,7 +7,9 @@
     {{/if}}
   </li>
   {{/each}}
+  {{#if userAccess.createRepo}}
   <li class="list-group-item text-center align-center">
     <a href="/user/createRepo"> + Create Repository</a>
   </li>
+  {{/if}}
 </ul>

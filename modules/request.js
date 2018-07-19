@@ -6,10 +6,19 @@
 exports.userValidation = function (route, config) {
     var git = require("./git");
     var validation = require("./validation");
+    //Retrive/update loged in user privilage
+    route.all("*", function (req, res, next) {
+        if (validation.loginValidation(req, res, config)) {
+            var accessCntrl = require("../dbSchema/accessCntrl");
+            accessCntrl.getAccessPermission(req, res, config, next);
+        } else {
+            next();
+        }
+    });
     //Login verification for user data
     route.all("/user*", function (req, res, next) {
         if (validation.loginValidation(req, res, config)) {
-            next(); //TODO
+            next();
         } else {
             unAuthorisedRequest(config, res);
         }
@@ -43,22 +52,27 @@ exports.userValidation = function (route, config) {
         }
     });
     //Git/Web Access Control
-    route.all(config.gitURL + "(/:repoName)?(*)", function (req, res, next) {
+    route.all(config.gitURL + "/:repoName*", function (req, res, next) {
         if (req.params.repoName) {
             var data = {
-                authorised:false,
-                owner:false, //Has access to repository settings
-                private:false,
-                userList:[{
-                    userName:"",
-                    readOnly:true
+                authorised: false,
+                owner: false, //Has access to repository settings
+                private: false,
+                userList: [{
+                    userName: "",
+                    readOnly: true
                 }],
-                readOnly:true
+                readOnly: true
             };
             config.repoAccess = data;
             next(); //TODO
         } else {
-            res.redirect("/");
+            if (gitRequest) {
+                res.status(403);
+                res.send();
+            } else {
+                res.redirect("/");
+            }
         }
     });
     return route;
@@ -116,8 +130,20 @@ exports.get = function (route, config) {
                     res.redirect(config.gitURL + "/" + result.repo + "/readme");
                 } else {
                     res.render("user/home", {
+                        helpers: {
+                            controlPannelPage: function () {
+                                if (req.session.userAccess.Serverconfiguration) {
+                                    return "configuration";
+                                } else if (req.session.userAccess.userControl) {
+                                    return "userAccess";
+                                } else {
+                                    return "";
+                                }
+                            }
+                        },
                         name: req.session.userData.name,
-                        config: config
+                        config: config,
+                        userAccess: req.session.userAccess
                     });
                 }
             });
@@ -133,7 +159,8 @@ exports.get = function (route, config) {
         }
     });
     route.get("/login", function (req, res) {
-        if (req.cookies[config.advProperties.cookieChecksumName]) {
+        var validation = require("./validation");
+        if (validation.loginValidation(req, res, config)) {
             res.redirect("/");
         } else {
             var handlebarLayout = "public";
@@ -147,7 +174,8 @@ exports.get = function (route, config) {
         }
     });
     route.get("/signup", function (req, res) {
-        if (req.cookies[config.advProperties.cookieChecksumName]) {
+        var validation = require("./validation");
+        if (validation.loginValidation(req, res, config)) {
             res.redirect("/");
         } else {
             var handlebarLayout = "public";
@@ -161,7 +189,8 @@ exports.get = function (route, config) {
         }
     });
     route.get("/forgotPass", function (req, res) {
-        if (req.cookies[config.advProperties.cookieChecksumName]) {
+        var validation = require("./validation");
+        if (validation.loginValidation(req, res, config)) {
             res.redirect("/");
         } else {
             var handlebarLayout = "public";
@@ -174,7 +203,7 @@ exports.get = function (route, config) {
             });
         }
     });
-    route.get(config.gitURL + "/:repoName/:repoPage", function (req, res) {
+    route.get(config.gitURL + "/:repoName/:repoPage", function (req, res, next) {
         var gitRepo = require("../dbSchema/gitRepo");
         var page;
         var details = {};
@@ -235,88 +264,168 @@ exports.get = function (route, config) {
                 page = "repo/readme";
                 break;
             default:
-                res.redirect(config.gitURL + "/" + req.params.repoName + "/readme");
+                next();
                 break;
         }
-        gitRepo.find({}, req, res, config, function (req, res, config, repoResult) {
-            var currentRepoDetails = {};
-            repoResult.forEach(function (repoDetails) {
-                if (repoDetails.repo == req.params.repoName) {
-                    currentRepoDetails.descripton = repoDetails.description;
-                    currentRepoDetails.url = repoDetails.url;
-                    currentRepoDetails.private = repoDetails.private;
-                    currentRepoDetails.repo = repoDetails.repo;
-                    if (repoDetails.createdUser.toUpperCase() == req.session.userData.userName) {
-                        currentRepoDetails.setting = true;
+        if (page) {
+            gitRepo.find({}, req, res, config, function (req, res, config, repoResult) {
+                var currentRepoDetails = {};
+                repoResult.forEach(function (repoDetails) {
+                    if (repoDetails.repo == req.params.repoName) {
+                        currentRepoDetails.descripton = repoDetails.description;
+                        currentRepoDetails.url = repoDetails.url;
+                        currentRepoDetails.private = repoDetails.private;
+                        currentRepoDetails.repo = repoDetails.repo;
+                        if (repoDetails.createdUser.toUpperCase() == req.session.userData.userName) {
+                            currentRepoDetails.setting = true;
+                        }
                     }
+                });
+                if (currentRepoDetails.url) {
+                    res.render("repo/repoHome", { //Read Me
+                        helpers: {
+                            selectedRepo: function (repo) {
+                                if (repo == req.params.repoName) return "list-group-item-info";
+                                else return "";
+                            },
+                            activeTab: function () {
+                                return page.toLowerCase();
+                            },
+                            controlPannelPage: function () {
+                                if (req.session.userAccess.Serverconfiguration) {
+                                    return "configuration";
+                                } else if (req.session.userAccess.userControl) {
+                                    return "userAccess";
+                                } else {
+                                    return "";
+                                }
+                            }
+                        },
+                        name: req.session.userData.name,
+                        repo: repoResult,
+                        descripton: currentRepoDetails.descripton,
+                        url: currentRepoDetails.url,
+                        private: currentRepoDetails.private,
+                        repoName: currentRepoDetails.repo,
+                        branchName: details.head,
+                        branches: details.branches,
+                        readmeHTML: details.readmeHTML,
+                        config: config,
+                        userAccess: req.session.userAccess,
+                        setting: currentRepoDetails.setting,
+                        verify: verify
+                    });
+                } else {
+                    res.redirect("/");
                 }
             });
-            if (currentRepoDetails.url) {
-                res.render("repo/repoHome", { //Read Me
+        }
+    });
+    route.get("/user/createRepo", function (req, res) {
+        if (req.session.userAccess.createRepo) {
+            res.render("user/createRepo", {
+                helpers: {
+                    controlPannelPage: function () {
+                        if (req.session.userAccess.Serverconfiguration) {
+                            return "configuration";
+                        } else if (req.session.userAccess.userControl) {
+                            return "userAccess";
+                        } else {
+                            return "";
+                        }
+                    }
+                },
+                name: req.session.userData.name,
+                config: config,
+                userAccess: req.session.userAccess
+            });
+        } else {
+            if (config.logging) console.log("Un-Authorized zone redirected");
+            res.redirect("/");
+        }
+    });
+    route.get("/user/controlPannel/:settingPage", function (req, res, next) {
+        if (req.session.userAccess.ServerControlPannel || req.session.userAccess.userControl) {
+            var page;
+            var loadControlPannelPage = function (req, res, config) {
+                res.render("user/controlPannel", {
                     helpers: {
-                        selectedRepo: function (repo) {
-                            if (repo == req.params.repoName) return "list-group-item-info";
-                            else return "";
+                        getPage: function () {
+                            return page;
                         },
-                        activeTab: function () {
-                            return page.toLowerCase();
+                        controlPannelPage: function () {
+                            if (req.session.userAccess.Serverconfiguration) {
+                                return "configuration";
+                            } else if (req.session.userAccess.userControl) {
+                                return "userAccess";
+                            } else {
+                                return "";
+                            }
                         }
                     },
                     name: req.session.userData.name,
-                    repo: repoResult,
-                    descripton: currentRepoDetails.descripton,
-                    url: currentRepoDetails.url,
-                    private: currentRepoDetails.private,
-                    repoName: currentRepoDetails.repo,
-                    branchName: details.head,
-                    branches: details.branches,
-                    readmeHTML: details.readmeHTML,
                     config: config,
-                    setting: currentRepoDetails.setting,
-                    verify: verify
+                    userAccess: req.session.userAccess,
+                    user: config.userResult
                 });
-            } else {
-                res.redirect("/");
+            };
+            switch (req.params.settingPage) {
+                case "configuration":
+                    page = "controlPannel/configuration";
+                    loadControlPannelPage(req, res, config);
+                    break;
+                case "userAccess":
+                    var user = require("../dbSchema/user");
+                    user.getAllUsers(req, res, config, function (req, res, config) {
+                        loadControlPannelPage(req, res, config);
+                    });
+                    page = "controlPannel/userAccess";
+                    break;
+                default:
+                    next();
+                    break;
             }
-        });
+        } else {
+            if (config.logging) console.log("Un-Authorized zone redirected");
+            res.redirect("/");
+        }
     });
-    route.get("/user/createRepo", function (req, res) {
-        res.render("user/createRepo", {
-            name: req.session.userData.name,
-            config: config
-        });
-    });
-    route.get("/user/controlPannel",function(req,res){
-        res.render("user/controlPannel",{
-            helpers:{
-                getPage:function(){
-                    return "controlPannel/configuration";
-                }
-            },
-            name: req.session.userData.name,
-            config: config
-        });
-    });
-    route.get("/user/:userPage", function (req, res) {
+    route.get("/user/:userPage", function (req, res, next) {
         var page;
+        var loadUserControlPage = function (req, res, config) {
+            res.render("partials/" + page, {
+                helpers: {
+                    controlPannelPage: function () {
+                        if (req.session.userAccess.Serverconfiguration) {
+                            return "configuration";
+                        } else if (req.session.userAccess.userControl) {
+                            return "userAccess";
+                        } else {
+                            return "";
+                        }
+                    }
+                },
+                name: req.session.userData.name,
+                config: config,
+                userAccess: req.session.userAccess
+            });
+        };
         switch (req.params.userPage) {
             case "setting":
                 page = "user/setting";
+                loadUserControlPage(req, res, config);
                 break;
             case "profile":
                 page = "user/profile";
+                loadUserControlPage(req, res, config);
                 break;
             default:
-                res.redirect("/");
+                next();
                 break;
         }
         if (req.body.opti) {
             //TODO : Front End Partial Load 
         }
-        res.render("partials/user/" + req.params.userPage, {
-            name: req.session.userData.name,
-            config: config
-        });
     });
     route.get("/logout", function (req, res) {
         if (req.cookies[config.advProperties.cookieChecksumName]) {
@@ -357,8 +466,8 @@ exports.post = function (route, config) {
                         res.send();
                     } else {
                         var accessData = {
-                            ServerControlPannel:true,
-                            userControl:true,
+                            ServerControlPannel: true,
+                            userControl: true,
                         };
                         req.session.active = true;
                         req.session.access = accessData;
@@ -408,6 +517,8 @@ exports.post = function (route, config) {
                         message: message,
                         config: config
                     });
+                    var accessCntrl = require("../dbSchema/accessCntrl");
+                    accessCntrl.createUser(req, data, config);
                 }
             });
         } else {
@@ -432,7 +543,7 @@ exports.post = function (route, config) {
         git.gitInit(req, res, config);
     });
     route.post(config.gitURL + "/:repoName/setting", function (req, res) {
-        if(req.body.repoName){
+        if (req.body.repoName) {
             git.deleteRepo(req, res, config);
         }
     });

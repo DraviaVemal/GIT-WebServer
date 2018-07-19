@@ -15,7 +15,9 @@ exports.users = function (config) {
     if (config.dbUser != "" && config.dbPassword != "") {
         mongoURI = "mongodb://" + config.dbUser + ":" + config.dbPassword + "@" + config.dbURL + "/" + config.dbName;
     }
-    mongoose.connect(mongoURI,{ useNewUrlParser: true });
+    mongoose.connect(mongoURI, {
+        useNewUrlParser: true
+    });
     autoIncrement.initialize(mongoose);
     var users = new Schema({
         name: {
@@ -178,4 +180,39 @@ exports.loginUser = function (req, res, data, config, next) {
         res.status(403);
         res.send();
     }
+};
+/**
+ * return array of all user data in config.userResult
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} config Master Configuration JSON
+ * @param  {function} next callback function(req,res,config)
+ */
+exports.getAllUsers = function (req, res, config, next) {
+    var user = exports.users(config);
+    user.find({}, function (err, userResult) {
+        if (err) {
+            if (config.logging) console.log(err);
+            res.status(500);
+            res.send();
+        } else {
+            var userAccess = require("./accessCntrl");
+            var accessCntrl = userAccess.accessCntrl(config);
+            accessCntrl.find({}, function (err, accessResult) {
+                if (err) {
+                    if (config.logging) console.log(err);
+                } else {
+                    for (var i in userResult) {
+                        for (var j in accessResult) {
+                            if (userResult[i].userName == accessResult[j].userName) {
+                                userResult[i] = JSON.parse(JSON.stringify(userResult[i]).substr(0, JSON.stringify(userResult[i]).length - 1) + "," + JSON.stringify(accessResult[j]).substr(1, JSON.stringify(accessResult[j]).length));
+                            }
+                        }
+                    }
+                    config.userResult = userResult;
+                    next(req, res, config);
+                }
+            });
+        }
+    });
 };

@@ -1,5 +1,5 @@
 <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="/">{{config.appName}}</a>
+    <a class="navbar-brand" href="/" data-test="configAppName">{{config.appName}}</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
         aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -14,14 +14,14 @@
             {{/if}}
             <li class="dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false">
+                    aria-expanded="false" data-test="currentUserName">
                     {{name}}
                 </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="/user/profile">Profile</a>
-                    <a class="dropdown-item" href="/user/setting">Setting</a>
+                <div class="dropdown-menu" data-test="userOption" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" data-test="userProfile" href="/user/profile">Profile</a>
+                    <a class="dropdown-item" data-test="userSetting" href="/user/setting">Setting</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="/logout">logout</a>
+                    <a class="dropdown-item" data-test="userLogout" href="/logout">logout</a>
                 </div>
             </li>
         </ul>

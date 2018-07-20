@@ -1,4 +1,4 @@
-<form action="/user/createRepo" method="POST" class="col-md-12">
+<form data-test="createRepoForm" method="POST" class="col-md-12">
     <div class="row">
         <div class="col-md-12">
             {{{message}}}
@@ -10,17 +10,17 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text">Repository Name : *</span>
                 </div>
-                <input type="text" class="form-control" name="repo" aria-describedby="Repository Name" required>
+                <input type="text" data-test="createRepoName" class="form-control" name="repo" aria-describedby="Repository Name" required>
             </div>
             <div class="form-check">
                 <label class="form-check-label">
-                    <input type="radio" class="form-check-input" name="type" value="public" checked required> Public
+                    <input type="radio" class="form-check-input" data-test="createRepoTypePublic" name="type" value="public" checked required> Public
                 </label>
                 <small class="form-text text-muted">Will be visible to all registered user.</small>
             </div>
             <div class="form-check">
                 <label class="form-check-label">
-                    <input type="radio" class="form-check-input" name="type" value="private" required> Private
+                    <input type="radio" class="form-check-input" data-test="createRepoTypePrivate" name="type" value="private" required> Private
                 </label>
                 <small class="form-text text-muted">Will be visible to user you choose.</small>
             </div>
@@ -28,14 +28,14 @@
         <div class="col-md-6">
             <div class="form-group">
                 <label for="repoDescription">Project Descripton : *</label>
-                <input type="text" class="form-control" name="repoDescription" aria-describedby="Repo Description" required>
+                <input type="text" data-test="createRepoDescription" class="form-control" name="repoDescription" aria-describedby="Repo Description" required>
             </div>
             <div class="form-group">
                 <label for="repoReadMe">Read Me File :</label>
-                <textarea class="form-control" name="repoReadMe" rows="5"></textarea>
+                <textarea class="form-control" data-test="createRepoReadMe" name="repoReadMe" rows="5"></textarea>
             </div>
             <div class="pull-right">
-                <button class="btn btn-m btn-success" type="submit" name="createRepo">Create</button>
+                <button class="btn btn-m btn-success" data-test="createRepoSubmit" type="submit" name="createRepo">Create</button>
             </div>
         </div>
     </div>

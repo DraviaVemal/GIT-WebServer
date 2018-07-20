@@ -73,5 +73,5 @@ config_broke.json
 #Dev Files/Directory
 dev.js
 .github
-cypress.js
+cypress.json
 cypress/

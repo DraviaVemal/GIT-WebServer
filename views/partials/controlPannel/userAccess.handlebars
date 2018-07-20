@@ -22,13 +22,13 @@
                 <td>{{#if mailVerified}} Verified {{else}} Not-Verified {{/if}}
                 </td>
                 <td>
-                    <input type="checkbox" class="form-control" {{#if Serverconfiguration}} checked{{/if}}>
+                    <input type="checkbox" class="form-control" {{currentUser userName}} {{#if Serverconfiguration}}checked{{/if}}>
                 </td>
                 <td>
-                    <input type="checkbox" class="form-control" {{#if userControl}} checked{{/if}}>
+                    <input type="checkbox" class="form-control" {{currentUser userName}} {{#if userControl}}checked{{/if}}>
                 </td>
                 <td>
-                    <input type="checkbox" class="form-control" {{#if userBlocked}} checked{{/if}}>
+                    <input type="checkbox" class="form-control" {{currentUser userName}} {{#if userBlocked}}checked{{/if}}>
                 </td>
                 <td>
                     <a href="javascript:;;;">del</a>

@@ -361,6 +361,11 @@ exports.get = function (route, config) {
                             } else {
                                 return "";
                             }
+                        },
+                        currentUser: function (userName) {
+                            if (userName == req.session.userData.userName) {
+                                return "disabled";
+                            }
                         }
                     },
                     name: req.session.userData.name,

@@ -4,7 +4,8 @@
   "description": "Web Server Integrated GIT Version Control System",
   "main": "server.js",
   "scripts": {
-    "start": "node dev.js"
+    "start": "node dev.js",
+    "test" : "./node_modules/.bin/cypress open"
   },
   "repository": {
     "type": "git",

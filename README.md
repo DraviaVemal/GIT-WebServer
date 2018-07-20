@@ -1,30 +1,31 @@
 # Message
-    Under Development wait for release v1.0.0 for backward compatable updates to start
+    Under Development project, wait for release v1.0.0 for backward compatable updates to start
 
-#Beta version instalation
+# Beta version installation
     npm i git-webserver
 
-#Beta version deployment
+# Beta version deployment
     In app file Ex:"index.js"
-    ```javascript
-    require("git-webserver")(__dirname);
-    ```
+
+```javascript
+require("git-webserver")(__dirname);
+```
 # Config option
     create config.json in root directory
     Available options
 
    | Option |   Type   | required | Description | Default |
-   | ------ |:------- :|:--------:|:-----------:| -------:|
+   | ------ |:--------:|:--------:|:-----------:| -------:|
    | salt   | String | true  | Encription secrect key.| *auto* |
    | cluster| Bool | false | To run the app in cluster mode across multiple processor. | true |
    | logging| Bool | false | Console logging. | false |
    | port   | Integer | false | port number for your application. | 80 |
-   | gitURL | String | false | URL path for your git replository. | "/git"|
+   | gitURL | String | false | URL path for your git repository. | "/git"|
    | appName| String | false | Application name. | "Git-WebServer" |
    | dbname | String | false | DataBase name. | "GitWebServer" |
    | dbURL  | String | false | DataBase connection url. | "localhost" |
-   | dbUser | String | false | DataBase Authendication user. | "" |
-   | dbPassword | String | false | DataBase Authendication password. | "" |
+   | dbUser | String | false | DataBase Authendication user. | *empty* |
+   | dbPassword | String | false | DataBase Authendication password. | *empty* |
 
     Note : There are still many config features provided to make application flexible to run in multiple environment.
     The detailed documents will be updated in future.

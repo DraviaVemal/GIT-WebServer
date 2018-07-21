@@ -1,3 +1,7 @@
+/**
+ * Access Control setting data DB
+ * @param  {JSON} config Master Configuration JSON
+ */
 exports.accessCntrl = function (config) {
     var mongoose = require("mongoose"),
         Schema = mongoose.Schema,
@@ -23,7 +27,19 @@ exports.accessCntrl = function (config) {
             type: Boolean,
             default: false
         },
+        Serverconfiguration: {
+            type: Boolean,
+            default: false
+        },
         userControl: {
+            type: Boolean,
+            default: false
+        },
+        createRepo: {
+            type: Boolean,
+            default: false
+        },
+        userBlocked: {
             type: Boolean,
             default: false
         },
@@ -38,4 +54,60 @@ exports.accessCntrl = function (config) {
         startAt: 1
     });
     return mongoose.model("accessCntrl", accessCntrl, "accessCntrl");
+};
+/**
+ * @param  {Object} req
+ * @param  {{userName:String}} data
+ * @param  {JSON} config Master Configuration JSON
+ */
+exports.createUser = function (req, data, config) {
+    var accessCntrl = exports.accessCntrl(config);
+    accessCntrl.create(data, function (err) {
+        if (config.logging) console.log(err);
+    });
+};
+/**
+ * Updates the current user access permission status
+ * @param  {object} req Request Object
+ * @param  {object} res Response Object
+ * @param  {JSON} config Master Configuration JSON
+ * @param  {function} next next function by express
+ */
+exports.getAccessPermission = function (req, res, config, next) {
+    var accessCntrl = exports.accessCntrl(config);
+    accessCntrl.findOne({
+        userName: req.session.userData.userName
+    }, function (err, result) {
+        if (err) {
+            if (config.logging) console.log(err);
+        } else {
+            if (result) {
+                req.session.userAccess = result;
+                delete req.session.userAccess.userName;
+                delete req.session.userAccess.Si;
+                delete req.session.userAccess.timestamp;
+                if(result.userBlocked){
+                    res.send("User Access Revoked");
+                }else{
+                    next();
+                }
+            } else {
+                accessCntrl.create({
+                    userName: req.session.userData.userName
+                }, function (err, result) {
+                    if (err) {
+                        if (config.logging) console.log(err);
+                        req.session.userAccess = {};
+                        next();
+                    } else {
+                        req.session.userAccess = result;
+                        delete req.session.userAccess.userName;
+                        delete req.session.userAccess.Si;
+                        delete req.session.userAccess.timestamp;
+                        next();
+                    }
+                });
+            }
+        }
+    });
 };

@@ -8,16 +8,18 @@
 			    <div>GIT<span>WebServer</span></div>
 		    </div>
             <div class="login">
-                <form method="POST" action="/login">
-                    <input type="text" class="form-control" placeholder="Username" name="eMail" aria-describedby="E-Mail" required>
-                    <input type="password" class="form-control" placeholder="Password" name="password" aria-describedby="password" required>
+                <form method="POST" data-test="loginForm" action="/login">
+                    <input type="text" class="form-control" placeholder="Username" name="eMail" data-test="loginEMail" aria-describedby="E-Mail" required>
+                    <input type="password" class="form-control" placeholder="Password" name="password" data-test="loginPassword" aria-describedby="password" required>
                     {{#if failure}}
-                        <div class="alert">Incorrect username or password.</div>
+                        <div class="alert" data-test="loginMessage">Incorrect username or password.</div>
                     {{/if}}
-                    <input type="submit" value="Sign In"></input>
+                    <input type="submit" data-test="loginSubmit" value="Sign In"></input>
                 </form>
-                <div id="left"><a href="/forgotPass">Can't log in?</a></div>
-                <div id="right"><a href="/signup">New User</a></div>
+                {{#if config.eMail}}
+                <div id="left"><a href="/forgotPass" data-test="loginForgotpass">Can't log in?</a></div>
+                {{/if}}
+                <div id="right"><a href="/signup" data-test="loginSignup">New User</a></div>
             </div>
     </div>
 </div>

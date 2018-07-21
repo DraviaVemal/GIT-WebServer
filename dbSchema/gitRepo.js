@@ -83,7 +83,7 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
         validation.variableNotEmpty(data.url) &&
         validation.variableNotEmpty(data.description)) {
         if (config.database == "Mongo") {
-            var gitRepo = this.gitRepo(config);
+            var gitRepo = exports.gitRepo(config);
             data.logicName = data.repo.toUpperCase();
             gitRepo.create(data, function (err, gitRepo) {
                 if (err) {
@@ -93,7 +93,7 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
                             if (req.body.opti) {
                                 handlebarLayout = false;
                             }
-                            var message = '<div class="alert alert-warning" role="alert">Sorry ! Repository name "<strong>' + data.repo + '</strong>" already taken</div>';
+                            var message = '<div class="alert alert-warning" role="alert" data-test="createRepoMessage">Sorry ! Repository name "<strong>' + data.repo + '</strong>" already taken</div>';
                             res.render("user/createRepo", {
                                 layout: handlebarLayout,
                                 name: req.session.userData.name,

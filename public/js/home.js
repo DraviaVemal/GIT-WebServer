@@ -11,11 +11,11 @@ function deleteRepo() {
         buttons: {
             confirm: {
                 label: 'Yes',
-                className: 'btn-danger'
+                className: 'btn-danger data-test-gitSettingDeleteConfirm'
             },
             cancel: {
                 label: 'No',
-                className: 'btn-success'
+                className: 'btn-success data-test-gitSettingDeleteCancel'
             }
         },
         callback: function (result) {

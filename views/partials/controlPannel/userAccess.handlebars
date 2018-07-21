@@ -1,0 +1,45 @@
+<form method="POST">
+    <button type="submit" class="btn btn-primary btn-sm float-right">Update Access</button>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>User Name</th>
+                <th>Mail</th>
+                <th>Mail Status</th>
+                <th>Configuration Access</th>
+                <th>User Access</th>
+                <th>Block User</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each user}}
+            <tr>
+                <td>{{name}}</td>
+                <td>{{userName}}</td>
+                <td>{{eMail}}</td>
+                <td>{{#if mailVerified}} Verified {{else}} Not-Verified {{/if}}
+                </td>
+                <td>
+                    <input type="checkbox" {{currentUser userName}} {{#if Serverconfiguration}}checked{{/if}}>
+                </td>
+                <td>
+                    <input type="checkbox" {{currentUser userName}} {{#if userControl}}checked{{/if}}>
+                </td>
+                <td>
+                    <input type="checkbox" {{currentUser userName}} {{#if userBlocked}}checked{{/if}}>
+                </td>
+                {{#if config.eMail}}
+                <td>
+                    
+                </td>
+                {{/if}}
+                <td class="align-middle">
+                    <a href="javascript:;;;"><span class="glyphicon glyphicon-trash color-red" aria-hidden="true"></span></a>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</form>

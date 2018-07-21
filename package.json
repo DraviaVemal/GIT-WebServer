@@ -4,7 +4,8 @@
   "description": "Web Server Integrated GIT Version Control System",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node dev.js",
+    "test": "./node_modules/.bin/cypress open"
   },
   "repository": {
     "type": "git",
@@ -42,6 +43,10 @@
     "node-unique-id-generator": "^0.1.0",
     "rimraf": "^2.6.2",
     "sass-lint": "^1.12.1",
+    "sendmail": "^1.4.1",
     "simple-git": "^1.96.0"
+  },
+  "devDependencies": {
+    "cypress": "^3.0.2"
   }
 }

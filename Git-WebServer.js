@@ -30,7 +30,7 @@
  * @property {String} dbPassword Database access password - Default : ""
  * @property {String} database Type of database you choose - Default : "Mongo"
  * @property {bool} enableSSL Enable SSL Connection - Default : false
- * @property {bool} sgMail Enable send grid mail system - Default : false
+ * @property {bool} eMail Enable mail system - Default : false
  * @property {bool} sgMailApiKey Send grid API key for your account - Default : ""
  * @param {JSON.ssl} sslProperties SSL certificate properties - Default : {}
  * @param {JSON.adv} advProperties SSL certificate properties - Default : {}
@@ -53,7 +53,7 @@ exports.server = function (Config) {
         config.dbPassword = config.dbPassword || "";
         config.database = config.database || "Mongo";
         config.enableSSL = config.enableSSL || false;
-        config.sgMail = config.sgMail || false;
+        config.eMail = config.eMail || false;
         config.sgMailApiKey = config.sgMailApiKey || "";
         config.sslProperties = config.sslProperties || {};
         config.sslProperties.pemKey = config.sslProperties.pemKey || "";

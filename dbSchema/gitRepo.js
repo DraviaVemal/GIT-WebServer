@@ -93,7 +93,7 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
                             if (req.body.opti) {
                                 handlebarLayout = false;
                             }
-                            var message = '<div class="alert alert-warning" role="alert">Sorry ! Repository name "<strong>' + data.repo + '</strong>" already taken</div>';
+                            var message = '<div class="alert alert-warning" role="alert" data-test="createRepoMessage">Sorry ! Repository name "<strong>' + data.repo + '</strong>" already taken</div>';
                             res.render("user/createRepo", {
                                 layout: handlebarLayout,
                                 name: req.session.userData.name,

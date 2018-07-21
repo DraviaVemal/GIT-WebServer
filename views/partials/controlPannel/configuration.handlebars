@@ -9,27 +9,27 @@
             <form method="POST">
                 <table class="table text-center table-condensed">
                     <tr>
-                        <th class="align-middle">Port</th>
+                        <th class="align-middle">Port :</th>
                         <td>
                             <input type="number" class="form-control" value="{{config.port}}">
                         </td>
-                        <th class="align-middle">Application Name</th>
+                        <th class="align-middle">Application Name :</th>
                         <td>
                             <input type="text" class="form-control" value="{{config.appName}}">
                         </td>
                     </tr>
                     <tr>
-                        <th class="align-middle">Git URL</th>
+                        <th class="align-middle">Git URL :</th>
                         <td>
                             <input type="text" class="form-control" value="{{config.gitURL}}" disabled>
                         </td>
-                        <th class="align-middle">Database Name</th>
+                        <th class="align-middle">Database Name :</th>
                         <td>
                             <input type="text" class="form-control" value="{{config.dbName}}">
                         </td>
                     </tr>
                     <tr>
-                        <th class="align-middle">Database Type</th>
+                        <th class="align-middle">Database Type :</th>
                         <td>
                             <select class="form-control">
                                 <option value="Mongo">MongoDB</option>
@@ -39,38 +39,38 @@
                         <td></td>
                     </tr>
                     <tr>
-                        <th class="align-middle">DB User Name</th>
+                        <th class="align-middle">DB User Name :</th>
                         <td>
                             <input type="text" class="form-control" value="{{config.dbUser}}">
                         </td>
-                        <th class="align-middle">DB Password</th>
+                        <th class="align-middle">DB Password :</th>
                         <td>
                             <input type="password" class="form-control" value="{{config.dbPassword}}">
                         </td>
                     </tr>
                     <tr>
-                        <th class="align-middle">DB URI</th>
+                        <th class="align-middle">DB URI :</th>
                         <td>
                             <input type="text" class="form-control" value="{{config.dbURL}}">
                         </td>
-                        <th class="align-middle">DB Port</th>
+                        <th class="align-middle">DB Port :</th>
                         <td>
                             <input type="text" class="form-control" value="{{config.dbPort}}">
                         </td>
                     </tr>
                     <tr>
-                        <th class="align-middle">SSL Enabled</th>
+                        <th class="align-middle">SSL Enabled :</th>
                         <td>
                             <select class="form-control" disabled>
                                 <option value="false">False</option>
                                 <option value="true" {{#if config.enableSSL}} selected{{/if}}>True</option>
                             </select>
                         </td>
-                        <th class="align-middle">Enable Sendgrid Mail</th>
+                        <th class="align-middle">Enable Mail :</th>
                         <td>
                             <select class="form-control" disabled>
                                 <option value="false">False</option>
-                                <option value="true" {{#if config.sgMail}} selected{{/if}}>True</option>
+                                <option value="true" {{#if config.eMail}} selected{{/if}}>True</option>
                             </select>
                         </td>
                     </tr>

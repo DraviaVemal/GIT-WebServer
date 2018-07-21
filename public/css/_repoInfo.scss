@@ -1,0 +1,7 @@
+.badge {
+  background-color: $color-white;
+  color: $color-black;
+  &:empty {
+    display: block;
+  }
+}

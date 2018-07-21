@@ -1,7 +1,9 @@
+$color-white: #fff;
+$color-black: #000;
+$color-red: #f00;
 @import '_login';
-$coluor-white: #fff;
-$coluor-black: #000;
-
+@import '_repoInfo';
+@import '_controlPannelUser';
 .remove-margin {
   margin: 0;
 }
@@ -33,6 +35,10 @@ $coluor-black: #000;
 }
 
 a {
-  color: $coluor-black;
+  color: $color-black;
   text-decoration: none;
+}
+
+.align-middle {
+  vertical-align: middle!important;
 }

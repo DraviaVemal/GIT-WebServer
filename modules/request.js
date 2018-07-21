@@ -107,8 +107,8 @@ exports.staticFile = function (route, config) {
     route.get("/favicon.ico", function (req, res) {
         res.sendFile(config.dirname + "/public/img/favicon.ico");
     });
-    route.get("/img/:imageName", function (req, res) {
-        res.sendFile(config.dirname + "/public/img/icon/" + req.params.imageName);
+    route.get("/fonts/:fontFile", function (req, res) {
+        res.sendFile(config.dirname + "/public/fonts/" + req.params.fontFile);
     });
     return route;
 };

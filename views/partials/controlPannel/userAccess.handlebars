@@ -22,16 +22,21 @@
                 <td>{{#if mailVerified}} Verified {{else}} Not-Verified {{/if}}
                 </td>
                 <td>
-                    <input type="checkbox" class="form-control" {{currentUser userName}} {{#if Serverconfiguration}}checked{{/if}}>
+                    <input type="checkbox" {{currentUser userName}} {{#if Serverconfiguration}}checked{{/if}}>
                 </td>
                 <td>
-                    <input type="checkbox" class="form-control" {{currentUser userName}} {{#if userControl}}checked{{/if}}>
+                    <input type="checkbox" {{currentUser userName}} {{#if userControl}}checked{{/if}}>
                 </td>
                 <td>
-                    <input type="checkbox" class="form-control" {{currentUser userName}} {{#if userBlocked}}checked{{/if}}>
+                    <input type="checkbox" {{currentUser userName}} {{#if userBlocked}}checked{{/if}}>
                 </td>
+                {{#if config.eMail}}
                 <td>
-                    <a href="javascript:;;;">del</a>
+                    
+                </td>
+                {{/if}}
+                <td class="align-middle">
+                    <a href="javascript:;;;"><span class="glyphicon glyphicon-trash color-red" aria-hidden="true"></span></a>
                 </td>
             </tr>
             {{/each}}

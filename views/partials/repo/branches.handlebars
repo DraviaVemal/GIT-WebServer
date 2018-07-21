@@ -1,16 +1,16 @@
 <ul class="nav nav-tabs">
-    <li class="nav-item">
-        <a class="nav-link" data-test="gitReadMe" href="{{config.gitURL}}/{{repoName}}/readme">Read Me</a>
+    <li role="presentation">
+        <a data-test="gitReadMe" href="{{config.gitURL}}/{{repoName}}/readme">Read Me</a>
     </li>
-    <li class="nav-item">
-        <a class="nav-link" data-test="gitFiles" href="{{config.gitURL}}/{{repoName}}/files">Files</a>
+    <li role="presentation">
+        <a data-test="gitFiles" href="{{config.gitURL}}/{{repoName}}/files">Files</a>
     </li>
-    <li class="nav-item">
-        <a class="nav-link active" data-test="gitBranches" href="{{config.gitURL}}/{{repoName}}/branches">Branch</a>
+    <li role="presentation" class="active">
+        <a data-test="gitBranches" href="{{config.gitURL}}/{{repoName}}/branches">Branch</a>
     </li>
     {{#if setting}}
-    <li class="nav-item">
-        <a class="nav-link" data-test="gitSetting" href="{{config.gitURL}}/{{repoName}}/setting">Setting</a>
+    <li role="presentation">
+        <a data-test="gitSetting" href="{{config.gitURL}}/{{repoName}}/setting">Setting</a>
     </li>
     {{/if}}
 </ul>

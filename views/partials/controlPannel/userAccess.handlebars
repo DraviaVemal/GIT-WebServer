@@ -10,6 +10,10 @@
                 <th>Configuration Access</th>
                 <th>User Access</th>
                 <th>Block User</th>
+                {{#if config.eMail}}
+                {{else}}
+                <th>Reset Password</th>
+                {{/if}}
                 <th>Action</th>
             </tr>
         </thead>
@@ -30,13 +34,18 @@
                 <td>
                     <input type="checkbox" {{currentUser userName}} {{#if userBlocked}}checked{{/if}}>
                 </td>
-                {{#if config.eMail}}
+                {{#if ../config.eMail}}
+                {{else}}
                 <td>
-                    
+                    <button type="button" class="btn btn-danger btn-sm">
+                        <span class="glyphicon glyphicon-repeat"aria-hidden="true"></span>
+                    </button>
                 </td>
                 {{/if}}
                 <td class="align-middle">
-                    <a href="javascript:;;;"><span class="glyphicon glyphicon-trash color-red" aria-hidden="true"></span></a>
+                    <a href="javascript:;;;">
+                        <span class="glyphicon glyphicon-trash color-red" aria-hidden="true"></span>
+                    </a>
                 </td>
             </tr>
             {{/each}}

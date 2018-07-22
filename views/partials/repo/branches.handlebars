@@ -14,37 +14,39 @@
     </li>
     {{/if}}
 </ul>
-{{#if verify}}
-<div class="row">
-    <div class="col-md-12">
-        Head Branch:
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>{{branchName}}</th>
-                </tr>
-            </thead>
-        </table>
+<div class="col-md-12 tab-border">
+    {{#if verify}}
+    <div class="row">
+        <div class="col-md-12">
+            Head Branch:
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{{branchName}}</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </div>
-</div>
-<div class="row">
-    <div class="col-md-12">
-        branches:
-        <table class="table">
-            <thead>
-                {{#each branches}}
-                <tr>
-                    <td>{{this}}</td>
-                </tr>
-                {{/each}}
-            </thead>
-        </table>
+    <div class="row">
+        <div class="col-md-12">
+            branches:
+            <table class="table">
+                <thead>
+                    {{#each branches}}
+                    <tr>
+                        <td>{{this}}</td>
+                    </tr>
+                    {{/each}}
+                </thead>
+            </table>
+        </div>
     </div>
-</div>
-{{else}}
-<div class="row">
-    <div class="col-md-12 text-center">
-        This repository is empty
+    {{else}}
+    <div class="row">
+        <div class="col-md-12 text-center">
+            This repository is empty
+        </div>
     </div>
+    {{/if}}
 </div>
-{{/if}}

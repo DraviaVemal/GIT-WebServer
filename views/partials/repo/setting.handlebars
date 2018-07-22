@@ -13,36 +13,39 @@
         <a data-test="gitSetting" href="{{config.gitURL}}/{{repoName}}/setting">Setting</a>
     </li>
 </ul>
-<div class="row">
-    <div class="col-md-12">
-        <form method="POST">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-check">
-                        <label class="form-check-label">
-                            <input type="radio" class="form-check-input" name="repoType" value="checkedValue"> Public
-                        </label>
+<div class="col-md-12 tab-border">
+    <div class="row">
+        <div class="col-md-12">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="radio" class="form-check-input" name="repoType" value="checkedValue"> Public
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="radio" class="form-check-input" name="repoType" value="checkedValue" {{#if private}}checked{{/if}}> private
+                            </label>
+                        </div>
                     </div>
-                    <div class="form-check">
-                        <label class="form-check-label">
-                            <input type="radio" class="form-check-input" name="repoType" value="checkedValue" {{#if private}}checked{{/if}}> private
-                        </label>
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-primary">Update Setting</button>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <button type="submit" class="btn btn-primary">Update Setting</button>
-                </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
-<div class="row">
-    <div class="col-md-12">
-        <form method="POST" data-test="gitSettingDeleteForm" id="repoDelete" action="">
-            <input class="btn btn-danger btn-block" data-test="gitSettingDeleteSubmit" onclick="deleteRepo()" value="Delete Repository" name="repoName" readonly>
-        </form>
+    <div class="row">
+        <div class="col-md-12">
+            <form method="POST" data-test="gitSettingDeleteForm" id="repoDelete" action="">
+                <input class="btn btn-danger btn-block" data-test="gitSettingDeleteSubmit" onclick="deleteRepo()" value="Delete Repository"
+                    name="repoName" readonly>
+            </form>
+        </div>
     </div>
+    {{else}}
+    <p class="text-center">Access Denied</p>
+    {{/if}}
 </div>
-{{else}}
-<p class="text-center">Access Denied</p>
-{{/if}}

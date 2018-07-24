@@ -9,4 +9,13 @@
 .tab-border {
   border: 1px solid #ccc;
   border-top: 0;
+  padding: 0;
+}
+
+.file-structure{
+  list-style: none;
+}
+
+.file-structure.primary{
+  padding: 20px;
 }

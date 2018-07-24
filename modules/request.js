@@ -214,18 +214,41 @@ exports.get = function (route, config) {
                 //Folder Hirecharch creation uling html doc element
                 var directoryStructureBuilder = function (data) {
                     var masterList = document.createElement('ul');
-                    masterList.setAttribute("class","fileList")
-                    for (let i in data.children) {
+                    if (typeof directoryStructureBuilder.itemCounter == 'undefined') {
+                        directoryStructureBuilder.itemCounter = 0;
+                        masterList.setAttribute("class","file-structure primary");
+                    } else {
+                        ++directoryStructureBuilder.itemCounter;
+                        masterList.setAttribute("style","display: none;");
+                        masterList.setAttribute("class","file-structure");
+                    }
+                    masterList.setAttribute("data-fileitem", directoryStructureBuilder.itemCounter);
+                    for (var i in data.children) {
                         var item = document.createElement('li');
-                        item.appendChild(document.createTextNode(data.children[i].name));
-                        if(data.children[i].children){
+                        var itemIcon = document.createElement("span");
+                        if (data.children[i].children) {
+                            itemIcon.setAttribute("class","glyphicon glyphicon-folder-close");
+                            var aitem = document.createElement('a');
+                            aitem.appendChild(document.createTextNode(" " + data.children[i].name));
+                            aitem.setAttribute("onclick", "$('[data-fileitem=" + (directoryStructureBuilder.itemCounter + 1) + "]').toggle();");
+                            item.setAttribute("href", "javascript:;;;");
+                            item.appendChild(itemIcon);
+                            item.appendChild(aitem);
                             item.appendChild(new directoryStructureBuilder(data.children[i]));
+                        } else {
+                            if(data.children[i].type == "file"){
+                                itemIcon.setAttribute("class","glyphicon glyphicon-file");
+                            }else{
+                                itemIcon.setAttribute("class","glyphicon glyphicon-folder-open");
+                            }
+                            item.appendChild(itemIcon);
+                            item.appendChild(document.createTextNode(" " + data.children[i].name));
                         }
                         masterList.appendChild(item);
                     }
                     return masterList;
                 };
-                var folders = directoryTree(config.dirname + "/" + config.repoDir + "/" + req.params.repoName, {exclude:/.git/});
+                var folders = directoryTree(config.dirname + "/" + config.repoDir + "/" + req.params.repoName, { exclude: /.git/ });
                 if (folders.children.length) {
                     details.folders = new directoryStructureBuilder(folders).outerHTML;
                 } else {
@@ -248,6 +271,9 @@ exports.get = function (route, config) {
                         verify: verify
                     });
                 }
+                break;
+            case "history":
+                page = "repo/history";
                 break;
             case "setting":
                 page = "repo/setting";

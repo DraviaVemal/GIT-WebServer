@@ -8,6 +8,9 @@
     <li role="presentation">
         <a data-test="gitBranches" href="{{config.gitURL}}/{{repoName}}/branches">Branch</a>
     </li>
+    <li role="presentation">
+        <a data-test="gitHistory" href="{{config.gitURL}}/{{repoName}}/history">History</a>
+    </li>
     {{#if setting}}
     <li role="presentation">
         <a data-test="gitSetting" href="{{config.gitURL}}/{{repoName}}/setting">Setting</a>
@@ -16,9 +19,4 @@
 </ul>
 <div class="col-md-12 tab-border">
     {{{folders}}}
-    <script>
-        $('.fileList > li a').click(function () {
-            $(this).parent().find('ul').toggle();
-        });
-    </script>
 </div>

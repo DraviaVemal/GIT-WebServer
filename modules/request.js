@@ -209,6 +209,28 @@ exports.get = function (route, config) {
         var details = {};
         switch (req.params.repoPage) {
             case "files":
+                var document = require('html-element').document;
+                var directoryTree = require("directory-tree");
+                //Folder Hirecharch creation uling html doc element
+                var directoryStructureBuilder = function (data) {
+                    var masterList = document.createElement('ul');
+                    masterList.setAttribute("class","fileList")
+                    for (let i in data.children) {
+                        var item = document.createElement('li');
+                        item.appendChild(document.createTextNode(data.children[i].name));
+                        if(data.children[i].children){
+                            item.appendChild(new directoryStructureBuilder(data.children[i]));
+                        }
+                        masterList.appendChild(item);
+                    }
+                    return masterList;
+                };
+                var folders = directoryTree(config.dirname + "/" + config.repoDir + "/" + req.params.repoName, {exclude:/.git/});
+                if (folders.children.length) {
+                    details.folders = new directoryStructureBuilder(folders).outerHTML;
+                } else {
+                    details.folders = "<h3>Repository is empty</h3>";
+                }
                 page = "repo/files";
                 break;
             case "branches":
@@ -313,7 +335,8 @@ exports.get = function (route, config) {
                         config: config,
                         userAccess: req.session.userAccess,
                         setting: currentRepoDetails.setting,
-                        verify: verify
+                        verify: verify,
+                        folders: details.folders
                     });
                 } else {
                     res.redirect("/");

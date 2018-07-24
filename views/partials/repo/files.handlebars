@@ -15,4 +15,10 @@
     {{/if}}
 </ul>
 <div class="col-md-12 tab-border">
+    {{{folders}}}
+    <script>
+        $('.fileList > li a').click(function () {
+            $(this).parent().find('ul').toggle();
+        });
+    </script>
 </div>

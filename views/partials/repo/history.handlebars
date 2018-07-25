@@ -17,6 +17,23 @@
     </li>
     {{/if}}
 </ul>
-<div class="col-md-12 tab-border">
-    In Development
+<div class="col-md-12 tab-border history-structure">
+    <table class="table tab-border">
+        <tr>
+            <th>Author</th>
+            <th>Message</th>
+            <th>TimeStamp</th>
+            <th>SHA-1</th>
+            <th>Ref. branch</th>
+        </tr>
+        {{#each history}}
+        <tr>
+            <td>{{author}}</td>
+            <td>{{message}}</td>
+            <td>{{timestamp}}</td>
+            <td>{{sha}}</td>
+            <td>{{branch}}</td>
+        </tr>
+        {{/each}}
+    </table>
 </div>

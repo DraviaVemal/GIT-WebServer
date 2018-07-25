@@ -216,18 +216,18 @@ exports.get = function (route, config) {
                     var masterList = document.createElement('ul');
                     if (typeof directoryStructureBuilder.itemCounter == 'undefined') {
                         directoryStructureBuilder.itemCounter = 0;
-                        masterList.setAttribute("class","file-structure primary");
+                        masterList.setAttribute("class", "file-structure primary");
                     } else {
                         ++directoryStructureBuilder.itemCounter;
-                        masterList.setAttribute("style","display: none;");
-                        masterList.setAttribute("class","file-structure");
+                        masterList.setAttribute("style", "display: none;");
+                        masterList.setAttribute("class", "file-structure");
                     }
                     masterList.setAttribute("data-fileitem", directoryStructureBuilder.itemCounter);
                     for (var i in data.children) {
                         var item = document.createElement('li');
                         var itemIcon = document.createElement("span");
                         if (data.children[i].children) {
-                            itemIcon.setAttribute("class","glyphicon glyphicon-folder-close");
+                            itemIcon.setAttribute("class", "glyphicon glyphicon-folder-close");
                             var aitem = document.createElement('a');
                             aitem.appendChild(document.createTextNode(" " + data.children[i].name));
                             aitem.setAttribute("onclick", "$('[data-fileitem=" + (directoryStructureBuilder.itemCounter + 1) + "]').toggle();");
@@ -236,10 +236,10 @@ exports.get = function (route, config) {
                             item.appendChild(aitem);
                             item.appendChild(new directoryStructureBuilder(data.children[i]));
                         } else {
-                            if(data.children[i].type == "file"){
-                                itemIcon.setAttribute("class","glyphicon glyphicon-file");
-                            }else{
-                                itemIcon.setAttribute("class","glyphicon glyphicon-folder-open");
+                            if (data.children[i].type == "file") {
+                                itemIcon.setAttribute("class", "glyphicon glyphicon-file");
+                            } else {
+                                itemIcon.setAttribute("class", "glyphicon glyphicon-folder-open");
                             }
                             item.appendChild(itemIcon);
                             item.appendChild(document.createTextNode(" " + data.children[i].name));
@@ -248,13 +248,20 @@ exports.get = function (route, config) {
                     }
                     return masterList;
                 };
-                var folders = directoryTree(config.dirname + "/" + config.repoDir + "/" + req.params.repoName, { exclude: /.git/ });
+                var folders = directoryTree(config.dirname + "/" + config.repoDir + "/" + req.params.repoName, {
+                    exclude: /.git/
+                });
                 if (folders.children.length) {
                     details.folders = new directoryStructureBuilder(folders).outerHTML;
                 } else {
                     details.folders = "<h3>Repository is empty</h3>";
                 }
                 page = "repo/files";
+                if (req.body.opti) {
+                    res.render("partials/" + page, {
+                        folders: details.folders
+                    });
+                }
                 break;
             case "branches":
                 var branchesCommits = require("./branchesCommits");
@@ -273,6 +280,8 @@ exports.get = function (route, config) {
                 }
                 break;
             case "history":
+                var branchHistory = require("./branchesCommits");
+                details.history = branchHistory.repoHistory(config,req.params.repoName);
                 page = "repo/history";
                 break;
             case "setting":
@@ -362,7 +371,8 @@ exports.get = function (route, config) {
                         userAccess: req.session.userAccess,
                         setting: currentRepoDetails.setting,
                         verify: verify,
-                        folders: details.folders
+                        folders: details.folders,
+                        history:details.history
                     });
                 } else {
                     res.redirect("/");

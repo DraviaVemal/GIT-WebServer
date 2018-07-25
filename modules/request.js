@@ -10,7 +10,7 @@ exports.userValidation = function (route, config) {
     route.all("*", function (req, res, next) {
         if (validation.loginValidation(req, res, config)) {
             var accessCntrl = require("../dbSchema/accessCntrl");
-            accessCntrl.getAccessPermission(req, res, config, next);
+            accessCntrl.accessCntrlGetAccessPermission(req, res, config, next);
         } else {
             next();
         }
@@ -123,7 +123,7 @@ exports.get = function (route, config) {
     route.get("/", function (req, res) {
         if (validation.loginValidation(req, res, config)) {
             var gitRepo = require("../dbSchema/gitRepo");
-            gitRepo.findOne({
+            gitRepo.gitRepoFindOne({
                 createdUser: req.session.userData.userNameDisplay
             }, req, res, config, function (req, res, config, result) {
                 if (result) {
@@ -287,7 +287,7 @@ exports.get = function (route, config) {
             case "setting":
                 page = "repo/setting";
                 if (req.body.opti) {
-                    gitRepo.findOne({
+                    gitRepo.gitRepoFindOne({
                         repo: req.params.repoName
                     }, req, res, config, function (req, res, config, repoResult) {
                         var setting = false;
@@ -325,7 +325,7 @@ exports.get = function (route, config) {
                 break;
         }
         if (page) {
-            gitRepo.find({}, req, res, config, function (req, res, config, repoResult) {
+            gitRepo.gitRepoFind({}, req, res, config, function (req, res, config, repoResult) {
                 var currentRepoDetails = {};
                 repoResult.forEach(function (repoDetails) {
                     if (repoDetails.repo == req.params.repoName) {

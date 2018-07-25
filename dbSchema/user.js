@@ -2,7 +2,7 @@
  * User collection schema in mongo DB
  * @param  {JSON} config Master Configuration JSON
  */
-exports.users = function (config) {
+exports.usersMongoDB = function (config) {
     var mongoose = require("mongoose"),
         Schema = mongoose.Schema,
         autoIncrement = require("mongoose-auto-increment-fix");
@@ -83,7 +83,7 @@ exports.createUser = function (req, res, data, config, next) {
         data.userNameDisplay = data.userName;
         data.userName = data.userName.toUpperCase();
         if (config.database == "Mongo") {
-            var users = exports.users(config);
+            var users = exports.usersMongoDB(config);
             users.create(data, function (err) {
                 if (err) {
                     if (config.logging) console.log(err);
@@ -123,7 +123,7 @@ exports.loginUser = function (req, res, data, config, next) {
         validation.variableNotEmpty(data.password, 8)) {
         if (data.eMail) data.eMail = data.eMail.toUpperCase();
         if (config.database == "Mongo") {
-            var users = exports.users(config);
+            var users = exports.usersMongoDB(config);
             var query = {
                 $or: [{
                         eMail: data.eMail
@@ -189,7 +189,7 @@ exports.loginUser = function (req, res, data, config, next) {
  * @param  {function} next callback function(req,res,config)
  */
 exports.getAllUsers = function (req, res, config, next) {
-    var user = exports.users(config);
+    var user = exports.usersMongoDB(config);
     user.find({}, function (err, userResult) {
         if (err) {
             if (config.logging) console.log(err);

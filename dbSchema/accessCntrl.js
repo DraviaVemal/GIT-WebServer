@@ -2,7 +2,7 @@
  * Access Control setting data DB
  * @param  {JSON} config Master Configuration JSON
  */
-exports.accessCntrl = function (config) {
+exports.accessCntrlMongoDB = function (config) {
     var mongoose = require("mongoose"),
         Schema = mongoose.Schema,
         autoIncrement = require("mongoose-auto-increment-fix");
@@ -60,11 +60,14 @@ exports.accessCntrl = function (config) {
  * @param  {{userName:String}} data
  * @param  {JSON} config Master Configuration JSON
  */
-exports.createUser = function (req, data, config) {
-    var accessCntrl = exports.accessCntrl(config);
-    accessCntrl.create(data, function (err) {
-        if (config.logging) console.log(err);
-    });
+exports.accessCntrlCreateUser = function (req, data, config) {
+    //TODO : Data Validation
+    if (config.database == "Mongo") {
+        var accessCntrl = exports.accessCntrlMongoDB(config);
+        accessCntrl.create(data, function (err) {
+            if (config.logging) console.log(err);
+        });
+    }
 };
 /**
  * Updates the current user access permission status
@@ -73,41 +76,43 @@ exports.createUser = function (req, data, config) {
  * @param  {JSON} config Master Configuration JSON
  * @param  {function} next next function by express
  */
-exports.getAccessPermission = function (req, res, config, next) {
-    var accessCntrl = exports.accessCntrl(config);
-    accessCntrl.findOne({
-        userName: req.session.userData.userName
-    }, function (err, result) {
-        if (err) {
-            if (config.logging) console.log(err);
-        } else {
-            if (result) {
-                req.session.userAccess = result;
-                delete req.session.userAccess.userName;
-                delete req.session.userAccess.Si;
-                delete req.session.userAccess.timestamp;
-                if(result.userBlocked){
-                    res.send("User Access Revoked");
-                }else{
-                    next();
-                }
+exports.accessCntrlGetAccessPermission = function (req, res, config, next) {
+    if (config.database == "Mongo") {
+        var accessCntrl = exports.accessCntrlMongoDB(config);
+        accessCntrl.findOne({
+            userName: req.session.userData.userName
+        }, function (err, result) {
+            if (err) {
+                if (config.logging) console.log(err);
             } else {
-                accessCntrl.create({
-                    userName: req.session.userData.userName
-                }, function (err, result) {
-                    if (err) {
-                        if (config.logging) console.log(err);
-                        req.session.userAccess = {};
-                        next();
+                if (result) {
+                    req.session.userAccess = result;
+                    delete req.session.userAccess.userName;
+                    delete req.session.userAccess.Si;
+                    delete req.session.userAccess.timestamp;
+                    if (result.userBlocked) {
+                        res.send("User Access Revoked");
                     } else {
-                        req.session.userAccess = result;
-                        delete req.session.userAccess.userName;
-                        delete req.session.userAccess.Si;
-                        delete req.session.userAccess.timestamp;
                         next();
                     }
-                });
+                } else {
+                    accessCntrl.create({
+                        userName: req.session.userData.userName
+                    }, function (err, result) {
+                        if (err) {
+                            if (config.logging) console.log(err);
+                            req.session.userAccess = {};
+                            next();
+                        } else {
+                            req.session.userAccess = result;
+                            delete req.session.userAccess.userName;
+                            delete req.session.userAccess.Si;
+                            delete req.session.userAccess.timestamp;
+                            next();
+                        }
+                    });
+                }
             }
-        }
-    });
+        });
+    }
 };

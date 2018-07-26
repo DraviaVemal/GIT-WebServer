@@ -1,16 +1,23 @@
-# Message
+# Git-WebServer
+
+## Message
+
     Under Development project, wait for release v1.0.0 for backward compatable updates to start
 
-# Beta version installation
+## Beta version installation
+
     npm i git-webserver
 
-# Beta version deployment
+## Beta version deployment
+
     In app file Ex:"index.js"
 
 ```javascript
 require("git-webserver")(__dirname);
 ```
-# Config option
+
+## Config option
+
     create config.json in root directory
     Available options
 
@@ -30,23 +37,34 @@ require("git-webserver")(__dirname);
     Note : There are still many config features provided to make application flexible to run in multiple environment.
     The detailed documents will be updated in future.
 
-# Description
+## Description
+
     Web base version control system backed by GIT.
 
-# Contribution
+## Contribution
+
     Contributors are welcome.
     please contact at contact@draviavemal.com for details.
 
-# Supported Platform
+## Supported Platform
+
     Windows
     Linux
 
-# Pre-Requirement
-        Node JS
-        Git SCM
-        MongoDB
+## Pre-Requirement
+
+    Node JS
+    Git SCM
+    MongoDB
 
     Note : Development underway to remove Git SCM dependency and to support multiple database.
 
-# Ideas
+## TODO
+
+    Code documentaion
+    Test Case Update for dynamic feature
+    UI modernisation
+
+## Ideas
+
     -All ideas are welcome and will be considered seriously for incorporation

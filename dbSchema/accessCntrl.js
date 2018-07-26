@@ -69,6 +69,7 @@ exports.accessCntrlCreateUser = function (req, data, config) {
         });
     }
 };
+
 /**
  * Updates the current user access permission status
  * @param  {object} req Request Object

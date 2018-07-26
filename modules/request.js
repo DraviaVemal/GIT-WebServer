@@ -43,7 +43,7 @@ exports.userValidation = function (route, config) {
     route.all(config.gitURL + "/:repoName*", function (req, res, next) {
         if (!gitRequest) {
             if (validation.loginValidation(req, res, config)) {
-                next(); //TODO
+                next(); //TODO : Futher Validation and mapping
             } else {
                 unAuthorisedRequest(config, res);
             }
@@ -65,7 +65,7 @@ exports.userValidation = function (route, config) {
                 readOnly: true
             };
             config.repoAccess = data;
-            next(); //TODO
+            next(); //TODO : Access Control
         } else {
             if (gitRequest) {
                 res.status(403);

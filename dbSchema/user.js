@@ -189,32 +189,33 @@ exports.loginUser = function (req, res, data, config, next) {
  * @param  {function} next callback function(req,res,config)
  */
 exports.getAllUsers = function (req, res, config, next) {
-    var user = exports.usersMongoDB(config);
-    user.find({}, function (err, userResult) {
-        if (err) {
-            if (config.logging) console.log(err);
-            res.status(500);
-            res.send();
-        } else {
-            var userAccess = require("./accessCntrl");
-            //TODO Move the part to DB Schema file
-            //Add database selection option
-            var accessCntrl = userAccess.accessCntrlMongoDB(config);
-            accessCntrl.find({}, function (err, accessResult) {
-                if (err) {
-                    if (config.logging) console.log(err);
-                } else {
-                    for (var i in userResult) {
-                        for (var j in accessResult) {
-                            if (userResult[i].userName == accessResult[j].userName) {
-                                userResult[i] = JSON.parse(JSON.stringify(userResult[i]).substr(0, JSON.stringify(userResult[i]).length - 1) + "," + JSON.stringify(accessResult[j]).substr(1, JSON.stringify(accessResult[j]).length));
+    if (config.database == "Mongo") {
+        var user = exports.usersMongoDB(config);
+        user.find({}, function (err, userResult) {
+            if (err) {
+                if (config.logging) console.log(err);
+                res.status(500);
+                res.send();
+            } else {
+                var userAccess = require("./accessCntrl");
+                //TODO : Move to access cntrl sb schema
+                var accessCntrl = userAccess.accessCntrlMongoDB(config);
+                accessCntrl.find({}, function (err, accessResult) {
+                    if (err) {
+                        if (config.logging) console.log(err);
+                    } else {
+                        for (var i in userResult) {
+                            for (var j in accessResult) {
+                                if (userResult[i].userName == accessResult[j].userName) {
+                                    userResult[i] = JSON.parse(JSON.stringify(userResult[i]).substr(0, JSON.stringify(userResult[i]).length - 1) + "," + JSON.stringify(accessResult[j]).substr(1, JSON.stringify(accessResult[j]).length));
+                                }
                             }
                         }
+                        config.userResult = userResult;
+                        next(req, res, config);
                     }
-                    config.userResult = userResult;
-                    next(req, res, config);
-                }
-            });
-        }
-    });
+                });
+            }
+        });
+    }
 };

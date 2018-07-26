@@ -1,11 +1,11 @@
 <ul>
     {{#if userAccess.Serverconfiguration}}
     <li>
-        <a href="configuration">Configuration</a>
+        <a data-test="controlPannelConfig" href="configuration">Configuration</a>
     </li>
     {{/if}}{{#if userAccess.userControl}}
     <li>
-        <a href="userAccess">User Control</a>
+        <a data-test="controlPannelUser" href="userAccess">User Control</a>
     </li>
     {{/if}}
 </ul>

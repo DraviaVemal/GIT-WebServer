@@ -27,6 +27,10 @@ describe("repoTabsAndActions", function () {
                 .should("exist")
                 .should("be.visible")
                 .should('not.disabled');
+            cy.get("[data-test=gitHistory]")
+                .should("exist")
+                .should("be.visible")
+                .should('not.disabled');
             cy.get("[data-test=gitSetting]")
                 .should("exist")
                 .should("be.visible")
@@ -48,6 +52,11 @@ describe("repoTabsAndActions", function () {
             .click();
         cy.url()
             .should("include", "/git/test/branches");
+        repoLinks();
+        cy.get("[data-test=gitHistory]")
+            .click();
+        cy.url()
+            .should("include", "/git/test/history");
         repoLinks();
         cy.get("[data-test=gitSetting]")
             .click();

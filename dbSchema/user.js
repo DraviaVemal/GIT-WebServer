@@ -197,7 +197,9 @@ exports.getAllUsers = function (req, res, config, next) {
             res.send();
         } else {
             var userAccess = require("./accessCntrl");
-            var accessCntrl = userAccess.accessCntrl(config);
+            //TODO Move the part to DB Schema file
+            //Add database selection option
+            var accessCntrl = userAccess.accessCntrlMongoDB(config);
             accessCntrl.find({}, function (err, accessResult) {
                 if (err) {
                     if (config.logging) console.log(err);

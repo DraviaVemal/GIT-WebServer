@@ -6,32 +6,32 @@
     </div>
     <div class="row">
         <div class="col-md-12">
-            <form method="POST">
+            <form method="POST" data-test="controlPannelConfigUpdateForm">
                 <table class="table text-center table-condensed">
                     <tr>
                         <th class="align-middle">Port :</th>
                         <td>
-                            <input type="number" class="form-control" value="{{config.port}}">
+                            <input type="number" data-test="controlPannelConfigPort" class="form-control" value="{{config.port}}">
                         </td>
                         <th class="align-middle">Application Name :</th>
                         <td>
-                            <input type="text" class="form-control" value="{{config.appName}}">
+                            <input type="text" data-test="controlPannelConfigAppName" class="form-control" value="{{config.appName}}">
                         </td>
                     </tr>
                     <tr>
                         <th class="align-middle">Git URL :</th>
                         <td>
-                            <input type="text" class="form-control" value="{{config.gitURL}}" disabled>
+                            <input type="text" data-test="controlPannelCongigGitURL" class="form-control" value="{{config.gitURL}}" disabled>
                         </td>
                         <th class="align-middle">Database Name :</th>
                         <td>
-                            <input type="text" class="form-control" value="{{config.dbName}}">
+                            <input type="text" class="form-control" data-test="controlPannelCongigDBName" value="{{config.dbName}}">
                         </td>
                     </tr>
                     <tr>
                         <th class="align-middle">Database Type :</th>
                         <td>
-                            <select class="form-control">
+                            <select class="form-control" data-test="controlPannelCongigDBSelection">
                                 <option value="Mongo">MongoDB</option>
                             </select>
                         </td>
@@ -41,41 +41,41 @@
                     <tr>
                         <th class="align-middle">DB User Name :</th>
                         <td>
-                            <input type="text" class="form-control" value="{{config.dbUser}}">
+                            <input type="text" data-test="controlPannelCongigDBUser" class="form-control" value="{{config.dbUser}}">
                         </td>
                         <th class="align-middle">DB Password :</th>
                         <td>
-                            <input type="password" class="form-control" value="{{config.dbPassword}}">
+                            <input type="password" data-test="controlPannelCongigDBPassword" class="form-control" value="{{config.dbPassword}}">
                         </td>
                     </tr>
                     <tr>
                         <th class="align-middle">DB URI :</th>
                         <td>
-                            <input type="text" class="form-control" value="{{config.dbURL}}">
+                            <input type="text" data-test="controlPannelCongigDBURL" class="form-control" value="{{config.dbURL}}">
                         </td>
                         <th class="align-middle">DB Port :</th>
                         <td>
-                            <input type="text" class="form-control" value="{{config.dbPort}}">
+                            <input type="text" data-test="controlPannelCongigDBPort" class="form-control" value="{{config.dbPort}}">
                         </td>
                     </tr>
                     <tr>
                         <th class="align-middle">SSL Enabled :</th>
                         <td>
-                            <select class="form-control" disabled>
+                            <select data-test="controlPannelCongigSSLSelection" class="form-control" disabled>
                                 <option value="false">False</option>
                                 <option value="true" {{#if config.enableSSL}} selected{{/if}}>True</option>
                             </select>
                         </td>
                         <th class="align-middle">Enable Mail :</th>
                         <td>
-                            <select class="form-control" disabled>
+                            <select data-test="controlPannelCongigEMailSelection" class="form-control" disabled>
                                 <option value="false">False</option>
                                 <option value="true" {{#if config.eMail}} selected{{/if}}>True</option>
                             </select>
                         </td>
                     </tr>
                 </table>
-                <button type="submit" class="btn btn-block btn-primary">Update Config</button>
+                <button type="submit" data-test="controlPannelCongigUpdateButton" class="btn btn-block btn-primary">Update Config</button>
             </form>
         </div>
     </div>

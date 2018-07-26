@@ -2,7 +2,7 @@
  * Schema building for gitRepo DB
  * @param  {JSON} config Master Configuration JSON
  */
-exports.gitRepo = function (config) {
+exports.gitRepoMongoDB = function (config) {
     var mongoose = require("mongoose"),
         Schema = mongoose.Schema,
         autoIncrement = require("mongoose-auto-increment-fix");
@@ -83,7 +83,7 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
         validation.variableNotEmpty(data.url) &&
         validation.variableNotEmpty(data.description)) {
         if (config.database == "Mongo") {
-            var gitRepo = exports.gitRepo(config);
+            var gitRepo = exports.gitRepoMongoDB(config);
             data.logicName = data.repo.toUpperCase();
             gitRepo.create(data, function (err, gitRepo) {
                 if (err) {
@@ -131,7 +131,7 @@ exports.gitRepoDelete = function (req, res, data, config, next) {
     var validation = require("../modules/validation");
     if (validation.variableNotEmpty(data.repo, 4)) {
         if (config.database == "Mongo") {
-            var gitRepo = exports.gitRepo(config);
+            var gitRepo = exports.gitRepoMongoDB(config);
             gitRepo.deleteOne({
                 logicName: data.repo.toUpperCase()
             }, function (err) {
@@ -158,9 +158,9 @@ exports.gitRepoDelete = function (req, res, data, config, next) {
  * @param  {JSON} config Master Configuration JSON
  * @param  {function} next Callback function(req,res,config)
  */
-exports.findOne = function (query, req, res, config, next) {
+exports.gitRepoFindOne = function (query, req, res, config, next) {
     if (config.database == "Mongo") {
-        var gitRepo = exports.gitRepo(config);
+        var gitRepo = exports.gitRepoMongoDB(config);
         gitRepo.findOne(query, function (err, result) {
             if (err) {
                 if (config.logging) {
@@ -180,9 +180,9 @@ exports.findOne = function (query, req, res, config, next) {
  * @param  {JSON} config Master Configuration JSON
  * @param  {function} next Callback function(req,res,config)
  */
-exports.find = function (query, req, res, config, next) {
+exports.gitRepoFind = function (query, req, res, config, next) {
     if (config.database == "Mongo") {
-        var gitRepo = exports.gitRepo(config);
+        var gitRepo = exports.gitRepoMongoDB(config);
         gitRepo.find(query, function (err, result) {
             if (err) {
                 if (config.logging) {

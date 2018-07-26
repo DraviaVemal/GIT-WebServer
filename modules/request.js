@@ -10,7 +10,7 @@ exports.userValidation = function (route, config) {
     route.all("*", function (req, res, next) {
         if (validation.loginValidation(req, res, config)) {
             var accessCntrl = require("../dbSchema/accessCntrl");
-            accessCntrl.getAccessPermission(req, res, config, next);
+            accessCntrl.accessCntrlGetAccessPermission(req, res, config, next);
         } else {
             next();
         }
@@ -43,7 +43,7 @@ exports.userValidation = function (route, config) {
     route.all(config.gitURL + "/:repoName*", function (req, res, next) {
         if (!gitRequest) {
             if (validation.loginValidation(req, res, config)) {
-                next(); //TODO
+                next(); //TODO : Futher Validation and mapping
             } else {
                 unAuthorisedRequest(config, res);
             }
@@ -65,7 +65,7 @@ exports.userValidation = function (route, config) {
                 readOnly: true
             };
             config.repoAccess = data;
-            next(); //TODO
+            next(); //TODO : Access Control
         } else {
             if (gitRequest) {
                 res.status(403);
@@ -123,7 +123,7 @@ exports.get = function (route, config) {
     route.get("/", function (req, res) {
         if (validation.loginValidation(req, res, config)) {
             var gitRepo = require("../dbSchema/gitRepo");
-            gitRepo.findOne({
+            gitRepo.gitRepoFindOne({
                 createdUser: req.session.userData.userNameDisplay
             }, req, res, config, function (req, res, config, result) {
                 if (result) {
@@ -209,7 +209,59 @@ exports.get = function (route, config) {
         var details = {};
         switch (req.params.repoPage) {
             case "files":
+                var document = require('html-element').document;
+                var directoryTree = require("directory-tree");
+                //Folder Hirecharch creation uling html doc element
+                var directoryStructureBuilder = function (data) {
+                    var masterList = document.createElement('ul');
+                    if (typeof directoryStructureBuilder.itemCounter == 'undefined') {
+                        directoryStructureBuilder.itemCounter = 0;
+                        masterList.setAttribute("class", "file-structure primary");
+                    } else {
+                        ++directoryStructureBuilder.itemCounter;
+                        masterList.setAttribute("style", "display: none;");
+                        masterList.setAttribute("class", "file-structure");
+                    }
+                    masterList.setAttribute("data-fileitem", directoryStructureBuilder.itemCounter);
+                    for (var i in data.children) {
+                        var item = document.createElement('li');
+                        var itemIcon = document.createElement("span");
+                        if (data.children[i].children) {
+                            itemIcon.setAttribute("class", "glyphicon glyphicon-folder-close");
+                            var aitem = document.createElement('a');
+                            aitem.appendChild(document.createTextNode(" " + data.children[i].name));
+                            aitem.setAttribute("onclick", "$('[data-fileitem=" + (directoryStructureBuilder.itemCounter + 1) + "]').toggle();");
+                            item.setAttribute("href", "javascript:;;;");
+                            item.appendChild(itemIcon);
+                            item.appendChild(aitem);
+                            item.appendChild(new directoryStructureBuilder(data.children[i]));
+                        } else {
+                            if (data.children[i].type == "file") {
+                                itemIcon.setAttribute("class", "glyphicon glyphicon-file");
+                            } else {
+                                itemIcon.setAttribute("class", "glyphicon glyphicon-folder-open");
+                            }
+                            item.appendChild(itemIcon);
+                            item.appendChild(document.createTextNode(" " + data.children[i].name));
+                        }
+                        masterList.appendChild(item);
+                    }
+                    return masterList;
+                };
+                var folders = directoryTree(config.dirname + "/" + config.repoDir + "/" + req.params.repoName, {
+                    exclude: /.git/
+                });
+                if (folders.children.length) {
+                    details.folders = new directoryStructureBuilder(folders).outerHTML;
+                } else {
+                    details.folders = "<h3>Repository is empty</h3>";
+                }
                 page = "repo/files";
+                if (req.body.opti) {
+                    res.render("partials/" + page, {
+                        folders: details.folders
+                    });
+                }
                 break;
             case "branches":
                 var branchesCommits = require("./branchesCommits");
@@ -227,10 +279,15 @@ exports.get = function (route, config) {
                     });
                 }
                 break;
+            case "history":
+                var branchHistory = require("./branchesCommits");
+                details.history = branchHistory.repoHistory(config,req.params.repoName);
+                page = "repo/history";
+                break;
             case "setting":
                 page = "repo/setting";
                 if (req.body.opti) {
-                    gitRepo.findOne({
+                    gitRepo.gitRepoFindOne({
                         repo: req.params.repoName
                     }, req, res, config, function (req, res, config, repoResult) {
                         var setting = false;
@@ -268,7 +325,7 @@ exports.get = function (route, config) {
                 break;
         }
         if (page) {
-            gitRepo.find({}, req, res, config, function (req, res, config, repoResult) {
+            gitRepo.gitRepoFind({}, req, res, config, function (req, res, config, repoResult) {
                 var currentRepoDetails = {};
                 repoResult.forEach(function (repoDetails) {
                     if (repoDetails.repo == req.params.repoName) {
@@ -313,7 +370,9 @@ exports.get = function (route, config) {
                         config: config,
                         userAccess: req.session.userAccess,
                         setting: currentRepoDetails.setting,
-                        verify: verify
+                        verify: verify,
+                        folders: details.folders,
+                        history:details.history
                     });
                 } else {
                     res.redirect("/");

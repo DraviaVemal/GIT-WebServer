@@ -5,3 +5,38 @@
     display: block;
   }
 }
+
+.tab-border {
+  border: 1px solid #ccc;
+  border-top: 0;
+  padding: 0;
+}
+
+.file-structure{
+  list-style: none;
+}
+
+.file-structure.primary{
+  padding: 20px;
+}
+
+.branch-structure{
+  padding: 20px;
+  padding-bottom: 0;
+}
+
+.setting-structure{
+  padding: 20px;
+}
+
+.history-structure{
+  padding: 20px;
+  padding-bottom: 0;
+}
+
+.table-border{
+  border: 1px solid #ccc;
+}
+.nav.nav-tabs{
+  border: 1px solid #ccc;
+}

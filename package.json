@@ -1,6 +1,6 @@
 {
   "name": "git-webserver",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "Web Server Integrated GIT Version Control System",
   "main": "server.js",
   "scripts": {
@@ -18,6 +18,13 @@
     "Git Server",
     "Git WebServer"
   ],
+  "maintainers": [
+    "Dravia Vemal <contact@draviavemal.com> (https://www.draviavemal.com)"
+  ],
+  "contributors": [
+    "Dravia Vemal <contact@draviavemal.com> (https://www.draviavemal.com)",
+    "Velavan Vijay"
+  ],
   "author": "Dravia Vemal, Velavan",
   "license": "LGPL-3.0",
   "bugs": {
@@ -30,17 +37,22 @@
     "child_process": "^1.0.2",
     "connect-mongo": "^2.0.1",
     "cookie-parser": "^1.4.3",
+    "directory-tree": "^2.1.0",
     "express": "^4.16.3",
     "express-handlebars": "^3.0.0",
     "express-session": "^1.15.6",
     "full-git-history": "^1.2.4",
+    "git-emit": "0.0.0",
+    "html-element": "^2.2.0",
     "http-auth": "^3.2.3",
+    "i": "^0.3.6",
     "markdown": "^0.5.0",
     "method-override": "^2.3.10",
-    "mongoose": "^5.2.3",
+    "mongoose": "^5.2.4",
     "mongoose-auto-increment-fix": "^5.0.2",
     "morgan": "^1.9.0",
     "node-unique-id-generator": "^0.1.0",
+    "npm": "^6.2.0",
     "rimraf": "^2.6.2",
     "sass-lint": "^1.12.1",
     "sendmail": "^1.4.1",

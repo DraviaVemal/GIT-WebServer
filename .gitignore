@@ -73,4 +73,5 @@ config_broke.json
 
 #Dev Files
 dev.js
+package-lock.json
 /cypress/videos

@@ -64,6 +64,9 @@ require("git-webserver")(__dirname);
     Code documentaion
     Test Case Update for dynamic feature
     UI modernisation
+    Brute force protection
+    Request rate limiter
+    Strengthen validation and sanitisation
 
 ## Ideas
 

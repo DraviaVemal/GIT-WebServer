@@ -79,10 +79,15 @@ exports.server = function (Config) {
         }
         //Excernal Dependency Middlewares
         var express = require("express");
+        var subdomain = require('express-subdomain');
         var expressHandlebars = require("express-handlebars");
         var expressSession = require("express-session");
+        var userAgent = require('express-useragent');
+        var addRequestId = require('express-request-id');
+        var compression = require('compression');
         var fileSystem = require("fs");
         var route = express.Router();
+        var apiRoute = express.Router();
         var bodyParser = require('body-parser');
         var methodOverride = require('method-override');
         var cookie = require("cookie-parser");
@@ -151,6 +156,7 @@ exports.server = function (Config) {
             });
         }
         expressServer.use(cookie());
+        expressServer.use(compression());
         //Using the created Session store to store session data in express-session
         expressServer.use(
             expressSession({
@@ -169,6 +175,8 @@ exports.server = function (Config) {
                 }
             })
         );
+        //Second layer of defense not a best idea but good one
+        expressServer.use(addRequestId());
         //Express-Handlibars directory to point to partialsDir,layoutsDir files in custom location
         //Default layout is set to default.handlebars
         expressServer.engine(
@@ -195,8 +203,11 @@ exports.server = function (Config) {
         expressServer.use(express.query());
         //Enables Console logging of route using npm morgon 
         if (config.logging) expressServer.use(logging("dev", route));
+        //Add the request user agent details to the req object
+        expressServer.use(userAgent.express());
         //Loding internal dependency request from modules, 
-        //Route is passed to add url path
+        //Route is passed to add url and api path
+        expressServer.use(subdomain('api',require("./modules/apiCall")(apiRoute)));
         expressServer.use(request.userValidation(route, config));
         expressServer.use(request.staticFile(route, config));
         expressServer.use(request.get(route, config));
@@ -261,13 +272,13 @@ exports.server = function (Config) {
  * @param  {JSON} config Master configuration JSON
  */
 function performanceOptimiser(config) {
+    var fileSystem = require("fs");
     //Load DB modules if the selected database is MongoDB
     if (config.database == "Mongo") {
         var accessCntrl = require("./dbSchema/accessCntrl");
         var gitRepo = require("./dbSchema/gitRepo");
         var token = require("./dbSchema/token");
         var user = require("./dbSchema/user");
-        var fileSystem = require("fs");
         accessCntrl.accessCntrlMongoDB(config);
         gitRepo.gitRepoMongoDB(config);
         token.mailTokenMongoDB(config);

@@ -69,6 +69,8 @@ config_broke.json
 
 #VD code development setting
 .vscode
+.vs
 
 #Dev Files
 dev.js
+/cypress/videos

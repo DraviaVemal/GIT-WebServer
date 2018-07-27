@@ -43,6 +43,9 @@ require("git-webserver")(__dirname);
 
 ## Contribution
 
+    Please have the code well commented.
+    Cypress is the testing system used by dev team.
+    add your code's test case in cypress if required before raising PR
     Contributors are welcome.
     please contact at contact@draviavemal.com for details.
 
@@ -57,7 +60,7 @@ require("git-webserver")(__dirname);
     Git SCM
     MongoDB
 
-    Note : Development underway to remove Git SCM dependency and to support multiple database.
+    Note : Development underway to remove Git SCM instalation dependency and to support multiple database.
 
 ## TODO
 

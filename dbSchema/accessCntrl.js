@@ -65,7 +65,7 @@ exports.accessCntrlCreateUser = function (req, data, config) {
     if (config.database == "Mongo") {
         var accessCntrl = exports.accessCntrlMongoDB(config);
         accessCntrl.create(data, function (err) {
-            if (config.logging) console.log(err);
+            if (gLogging) console.log(err);
         });
     }
 };
@@ -84,7 +84,7 @@ exports.accessCntrlGetAccessPermission = function (req, res, config, next) {
             userName: req.session.userData.userName
         }, function (err, result) {
             if (err) {
-                if (config.logging) console.log(err);
+                if (gLogging) console.log(err);
             } else {
                 if (result) {
                     req.session.userAccess = result;
@@ -101,7 +101,7 @@ exports.accessCntrlGetAccessPermission = function (req, res, config, next) {
                         userName: req.session.userData.userName
                     }, function (err, result) {
                         if (err) {
-                            if (config.logging) console.log(err);
+                            if (gLogging) console.log(err);
                             req.session.userAccess = {};
                             next();
                         } else {

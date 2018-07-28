@@ -5,10 +5,10 @@
  */
 exports.userValidation = function (route, config) {
     var git = require("./git");
-    var validation = require("./validation");
+    var validate = require("./validation");
     //Retrive/update loged in user privilage
     route.all("*", function (req, res, next) {
-        if (validation.loginValidation(req, res, config)) {
+        if (validate().loginValidation(req, res, config)) {
             var accessCntrl = require("../dbSchema/accessCntrl");
             accessCntrl.accessCntrlGetAccessPermission(req, res, config, next);
         } else {
@@ -17,7 +17,7 @@ exports.userValidation = function (route, config) {
     });
     //Login verification for user data
     route.all("/user*", function (req, res, next) {
-        if (validation.loginValidation(req, res, config)) {
+        if (validate().loginValidation(req, res, config)) {
             next();
         } else {
             unAuthorisedRequest(config, res);
@@ -42,7 +42,7 @@ exports.userValidation = function (route, config) {
     //user login verification
     route.all(config.gitURL + "/:repoName*", function (req, res, next) {
         if (!gitRequest) {
-            if (validation.loginValidation(req, res, config)) {
+            if (validate().loginValidation(req, res, config)) {
                 next(); //TODO : Futher Validation and mapping
             } else {
                 unAuthorisedRequest(config, res);
@@ -119,9 +119,9 @@ exports.staticFile = function (route, config) {
  */
 exports.get = function (route, config) {
     var git = require("./git");
-    var validation = require("./validation");
+    var validate = require("./validation");
     route.get("/", function (req, res) {
-        if (validation.loginValidation(req, res, config)) {
+        if (validate().loginValidation(req, res, config)) {
             var gitRepo = require("../dbSchema/gitRepo");
             gitRepo.gitRepoFindOne({
                 createdUser: req.session.userData.userNameDisplay
@@ -159,8 +159,8 @@ exports.get = function (route, config) {
         }
     });
     route.get("/login", function (req, res) {
-        var validation = require("./validation");
-        if (validation.loginValidation(req, res, config)) {
+        var validate = require("./validation");
+        if (validate().loginValidation(req, res, config)) {
             res.redirect("/");
         } else {
             var handlebarLayout = "public";
@@ -174,8 +174,8 @@ exports.get = function (route, config) {
         }
     });
     route.get("/signup", function (req, res) {
-        var validation = require("./validation");
-        if (validation.loginValidation(req, res, config)) {
+        var validate = require("./validation");
+        if (validate().loginValidation(req, res, config)) {
             res.redirect("/");
         } else {
             var handlebarLayout = "public";
@@ -189,8 +189,8 @@ exports.get = function (route, config) {
         }
     });
     route.get("/forgotPass", function (req, res) {
-        var validation = require("./validation");
-        if (validation.loginValidation(req, res, config)) {
+        var validate = require("./validation");
+        if (validate().loginValidation(req, res, config)) {
             res.redirect("/");
         } else {
             var handlebarLayout = "public";
@@ -399,7 +399,7 @@ exports.get = function (route, config) {
                 userAccess: req.session.userAccess
             });
         } else {
-            if (config.logging) console.log("Un-Authorized zone redirected");
+            if (gLogging) console.log("Un-Authorized zone redirected");
             res.redirect("/");
         }
     });
@@ -450,7 +450,7 @@ exports.get = function (route, config) {
                     break;
             }
         } else {
-            if (config.logging) console.log("Un-Authorized zone redirected");
+            if (gLogging) console.log("Un-Authorized zone redirected");
             res.redirect("/");
         }
     });
@@ -497,7 +497,7 @@ exports.get = function (route, config) {
             res.clearCookie(config.advProperties.cookieChecksumName);
             req.session.destroy(function (err) {
                 if (err) {
-                    if (config.logging) console.log(err);
+                    if (gLogging) console.log(err);
                 }
                 res.redirect("/");
             });
@@ -514,7 +514,7 @@ exports.get = function (route, config) {
  */
 exports.post = function (route, config) {
     var git = require("./git");
-    var validation = require("./validation");
+    var validate = require("./validation");
     route.post("/login", function (req, res) {
         var userDB = require("../dbSchema/user");
         var data = {
@@ -525,7 +525,7 @@ exports.post = function (route, config) {
             if (config.valid) {
                 req.session.regenerate(function (err) {
                     if (err) {
-                        if (config.logging) console.log(err);
+                        if (gLogging) console.log(err);
                         res.status(403);
                         res.send();
                     } else {
@@ -541,7 +541,7 @@ exports.post = function (route, config) {
                             userNameDisplay: config.result.userNameDisplay,
                             eMail: config.result.eMail,
                         };
-                        validation.loginInitialisation(req, res, config);
+                        validate().loginInitialisation(req, res, config);
                         res.redirect("/");
                     }
                 });
@@ -633,7 +633,7 @@ exports.gitRequest = function (route, config) {
 };
 
 function unAuthorisedRequest(config, res) {
-    if (config.logging)
+    if (gLogging)
         console.log("Un-Authorised access request redirected");
     res.redirect("/");
 }

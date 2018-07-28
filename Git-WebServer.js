@@ -41,9 +41,9 @@
  */
 exports.server = function (Config) {
     //internal dependency
-    var validation = require("./modules/validation");
+    var validate = require("./modules/validation");
     //Validating salt key and setting default config properties if no user data found
-    if (validation.variableNotEmpty(Config.salt, 8)) {
+    if (validate(Config.salt).isNotEmpty().hasLength(8).boolResult()) {
         var config = Config;
         config.port = config.port || 80;
         config.gitURL = config.gitURL || "/git";
@@ -67,7 +67,8 @@ exports.server = function (Config) {
         config.advProperties.sessionName = config.advProperties.sessionName || "SID";
         config.advProperties.cookieChecksumName = config.advProperties.cookieChecksumName || "SSID";
         config.advProperties.criptoSalt = config.advProperties.criptoSalt || 10;
-        if (config.logging) {
+        global.gLogging = config.logging;
+        if (gLogging) {
             console.log("Git-WebServer is initailising with below configuration");
             console.log(config);
         }
@@ -102,16 +103,16 @@ exports.server = function (Config) {
         var sslFiles = {};
         //if SSL enabled in user config data. Certificate files paths are verified
         if (config.enableSSL) {
-            if (validation.variableNotEmpty(config.sslProperties.key) &&
-                validation.variableNotEmpty(config.sslProperties.cert) &&
-                validation.variableNotEmpty(config.sslProperties.ca)) {
+            if (validate(config.sslProperties.key).isNotEmpty().boolResult() &&
+                validate(config.sslProperties.cert).isNotEmpty().boolResult() &&
+                validate(config.sslProperties.ca).isNotEmpty().boolResult()) {
                 sslFiles = {
                     key: fileSystem.readFileSync(config.sslProperties.key),
                     cert: fileSystem.readFileSync(config.sslProperties.cert),
                     ca: fileSystem.readFileSync(config.sslProperties.ca)
                 };
-            } else if (validation.variableNotEmpty(config.sslProperties.pemKey) &&
-                validation.variableNotEmpty(config.sslProperties.pemCert)) {
+            } else if (validate(config.sslProperties.pemKey).isNotEmpty().boolResult() &&
+                validate(config.sslProperties.pemCert).isNotEmpty().boolResult()) {
                 sslFiles = {
                     key: fileSystem.readFileSync(config.sslProperties.pemKey),
                     cert: fileSystem.readFileSync(config.sslProperties.pemCert)
@@ -201,13 +202,14 @@ exports.server = function (Config) {
         }));
         expressServer.use(methodOverride());
         expressServer.use(express.query());
+        expressServer.use(express.json());
         //Enables Console logging of route using npm morgon 
-        if (config.logging) expressServer.use(logging("dev", route));
+        if (gLogging) expressServer.use(logging("dev", route));
         //Add the request user agent details to the req object
         expressServer.use(userAgent.express());
         //Loding internal dependency request from modules, 
         //Route is passed to add url and api path
-        expressServer.use(subdomain('api',require("./modules/apiCall")(apiRoute)));
+        expressServer.use(subdomain('api', require("./modules/apiCall")(apiRoute)));
         expressServer.use(request.userValidation(route, config));
         expressServer.use(request.staticFile(route, config));
         expressServer.use(request.get(route, config));

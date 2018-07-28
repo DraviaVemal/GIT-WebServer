@@ -12,7 +12,7 @@ exports.generalDetails = function (config, repoName) {
         try {
             historyJSON = JSON.parse(historyString);
         } catch (err) {
-            if (config.logging) console.log(err);
+            if (gLogging) console.log(err);
             //TODO Error Handling
         }
         for (var branchHeads in historyJSON.heads) {
@@ -42,7 +42,7 @@ exports.repoHistory = function (config, repoName) {
         try {
             historyJSON = JSON.parse(historyString);
         } catch (err) {
-            if (config.logging) console.log(err);
+            if (gLogging) console.log(err);
             //TODO Error Handling
         }
         for(var i in historyJSON.commits){

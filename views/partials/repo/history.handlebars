@@ -1,24 +1,43 @@
 <ul class="nav nav-tabs">
     <li role="presentation">
-        <a data-test="gitReadMe" href="{{config.gitURL}}/{{repoName}}/readme">Read Me</a>
+        <a data-test="gitReadMe" href="{{config.gitURL}}/{{repoName}}/readme/{{activeBranch}}">Read Me</a>
     </li>
     <li role="presentation">
-        <a data-test="gitFiles" href="{{config.gitURL}}/{{repoName}}/files">Files</a>
+        <a data-test="gitFiles" href="{{config.gitURL}}/{{repoName}}/files/{{activeBranch}}">Files</a>
     </li>
     <li role="presentation">
         <a data-test="gitBranches" href="{{config.gitURL}}/{{repoName}}/branches">Branch</a>
     </li>
     <li role="presentation">
-        <a data-test="gitPullRequest" href="{{config.gitURL}}/{{repoName}}/pullrequest">Pull Request</a>
+        <a data-test="gitPullRequest" href="{{config.gitURL}}/{{repoName}}/pullrequest/{{activeBranch}}">Pull Request</a>
     </li>
     <li role="presentation" class="active">
-        <a data-test="gitHistory" href="{{config.gitURL}}/{{repoName}}/history">History</a>
+        <a data-test="gitHistory" href="{{config.gitURL}}/{{repoName}}/history/{{activeBranch}}">History</a>
     </li>
     {{#if setting}}
     <li role="presentation">
-        <a data-test="gitSetting" href="{{config.gitURL}}/{{repoName}}/setting">Setting</a>
+        <a data-test="gitSetting" href="{{config.gitURL}}/{{repoName}}/setting/{{activeBranch}}">Setting</a>
     </li>
     {{/if}}
+    <li class="pull-right">
+        <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Branch :
+                <strong>{{activeBranch}}</strong>
+                {{#if emptyBranch}}
+                <span class="caret"></span>
+                {{/if}}
+            </button>
+            {{#if emptyBranch}}
+            <ul class="dropdown-menu">
+                {{#each branchDropDown}}
+                <li>
+                    <a href="{{../config.gitURL}}/{{../repoName}}/history/{{this}}">{{this}}</a>
+                </li>
+                {{/each}}
+            </ul>
+            {{/if}}
+        </div>
+    </li>
 </ul>
 <div class="col-md-12 tab-border history-structure">
     <table class="table tab-border">

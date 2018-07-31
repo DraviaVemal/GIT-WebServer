@@ -279,9 +279,13 @@ exports.get = function (route, config) {
                     });
                 }
                 break;
+            case "pullrequest":
+                page = "repo/pullRequest";
+                //TODO : Opti Load
+                break;
             case "history":
                 var branchHistory = require("./branchesCommits");
-                details.history = branchHistory.repoHistory(config,req.params.repoName);
+                details.history = branchHistory.repoHistory(config, req.params.repoName);
                 page = "repo/history";
                 break;
             case "setting":
@@ -346,7 +350,7 @@ exports.get = function (route, config) {
                                 else return "";
                             },
                             activeTab: function () {
-                                return page.toLowerCase();
+                                return page;
                             },
                             controlPannelPage: function () {
                                 if (req.session.userAccess.Serverconfiguration) {
@@ -372,12 +376,53 @@ exports.get = function (route, config) {
                         setting: currentRepoDetails.setting,
                         verify: verify,
                         folders: details.folders,
-                        history:details.history
+                        history: details.history
                     });
                 } else {
                     res.redirect("/");
                 }
             });
+        }
+    });
+    route.get("/user/setting/:settingPage", function (req, res, next) {
+        var page;
+        var loadSettingPage = function () {
+            res.render("user/setting", {
+                helpers: {
+                    controlPannelPage: function () {
+                        if (req.session.userAccess.Serverconfiguration) {
+                            return "configuration";
+                        } else if (req.session.userAccess.userControl) {
+                            return "userAccess";
+                        } else {
+                            return "";
+                        }
+                    },
+                    settingPage: function () {
+                        return page;
+                    }
+                },
+                name: req.session.userData.name,
+                config: config,
+                userAccess: req.session.userAccess
+            });
+        };
+        switch (req.params.settingPage) {
+            case "privacy":
+                page = "user/privacy";
+                loadSettingPage();
+                break;
+            case "security":
+                page = "user/security";
+                loadSettingPage();
+                break;
+            case "notification":
+                page = "user/notification";
+                loadSettingPage();
+                break;
+            default:
+                next();
+                break;
         }
     });
     route.get("/user/createRepo", function (req, res) {
@@ -456,8 +501,8 @@ exports.get = function (route, config) {
     });
     route.get("/user/:userPage", function (req, res, next) {
         var page;
-        var loadUserControlPage = function (req, res, config) {
-            res.render("partials/" + page, {
+        var loadUserControlPage = function () {
+            res.render(page, {
                 helpers: {
                     controlPannelPage: function () {
                         if (req.session.userAccess.Serverconfiguration) {
@@ -476,12 +521,14 @@ exports.get = function (route, config) {
         };
         switch (req.params.userPage) {
             case "setting":
-                page = "user/setting";
-                loadUserControlPage(req, res, config);
+                //Removed as the page will be redired to security page on empty page setting call
+                // page = "user/setting";
+                // loadUserControlPage();
+                res.redirect("/user/setting/security");
                 break;
             case "profile":
                 page = "user/profile";
-                loadUserControlPage(req, res, config);
+                loadUserControlPage();
                 break;
             default:
                 next();

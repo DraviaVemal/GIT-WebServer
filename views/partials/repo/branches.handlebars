@@ -9,6 +9,9 @@
         <a data-test="gitBranches" href="{{config.gitURL}}/{{repoName}}/branches">Branch</a>
     </li>
     <li role="presentation">
+        <a data-test="gitPullRequest" href="{{config.gitURL}}/{{repoName}}/pullrequest">Pull Request</a>
+    </li>
+    <li role="presentation">
         <a data-test="gitHistory" href="{{config.gitURL}}/{{repoName}}/history">History</a>
     </li>
     {{#if setting}}
@@ -25,7 +28,9 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <td><strong>{{branchName}}</strong></td>
+                        <td>
+                            <strong>{{branchName}}</strong>
+                        </td>
                     </tr>
                 </thead>
             </table>

@@ -134,6 +134,7 @@ exports.postUploadPack = function (req, res, config) {
     res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
     res.setHeader('Content-Type', 'application/x-git-upload-pack-result');
     var git;
+    //TODO : Remove Script Files
     if (process.platform === "win32") {
         git = spawn(config.dirname + "/scripts/" + "gitUpload.cmd", ['--stateless-rpc', config.repoDir + "/" + repoName + ".git"]);
     } else if (process.platform === "linux") {
@@ -190,14 +191,6 @@ exports.gitInit = function (req, res, config) {
                     }
                 } else {
                     res.redirect(config.gitURL + "/" + config.gitRepo.repo + "/readme");
-                    simpleGit.clone(config.appRoutePath + "/" + config.repoDir + "/" + data.repo + ".git", config.dirname + "/" + config.repoDir + "/" + data.repo, [], function (err) {
-                        if (err) {
-                            if (gLogging) console.log(err);
-                        } else {
-                            if (gLogging) console.log("Git clone for new repo completed");
-                            exports.syncRepo(req, res, data, config);
-                        }
-                    });
                 }
             });
         });

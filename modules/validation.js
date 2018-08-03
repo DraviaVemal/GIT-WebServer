@@ -58,6 +58,41 @@ module.exports = function (variable) {
         }
     };
     /**
+     * Check the passed variable is empty
+     */
+    this.isEmpty = function () {
+        if (typeof (data) != "number" && typeof (data) != "object") {
+            if (data != null && data != undefined && data != "") {
+                finalResult = false;
+                return this;
+            } else {
+                return this;
+            }
+        } else {
+            if (gLogging) console.log("Invalid Input to function");
+            finalResult = false;
+            return this;
+        }
+    };
+    /**
+     * This function check the data is eual to privided input
+     * @param  {string} string String to be checked against
+     */
+    this.isEquals = function(string){
+        if(string.length){
+            if(variable == string){
+                return this;
+            }else{
+                finalResult = false;
+                return this; 
+            }
+        }else{
+            if (gLogging) console.log("Invalid Input to function");
+            finalResult = false;
+            return this;
+        }
+    }
+    /**
      * Check it has min. length of the variable
      * @param  {Integer} Length Min. length of the input variable
      */

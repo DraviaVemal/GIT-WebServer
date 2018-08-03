@@ -10,7 +10,7 @@ exports.generalDetails = function (config, repoName) {
     //the list is spilt into array and last empty record is removed
     var branchArray = execSync(cmd, {
             encoding: 'utf8',
-            cwd: config.dirname + "/" + config.repoDir + "/" + repoName + ".git"
+            cwd: config.dirname + "/" + config.repoDir + "/" + repoName
         })
         .split('\n')
         .slice(0, -1);
@@ -64,27 +64,28 @@ exports.repoHistory = function (config, repoName) {
  * Returns JSON file structure of repo branch
  * @param  {object} config Repository Name
  * @param  {String} repoName Repository Name
- * @param  {String} branch Branch Name in that Repository
+ * @param  {String} repoBranch Branch Name in that Repository
  */
-exports.repoFileStructure = function (config, repoName, branch) {
+exports.repoFileStructure = function (config, repoName, repoBranch) {
     var execSync = require('child_process').execSync;
     //TODO : Branch,repoName sanitisation
     //Git Command to get the file structure of specific branch
-    var cmd = "git ls-tree -r --name-only " + branch;
+    var cmd = "git ls-tree -r --name-only " + repoBranch;
     //Recives the return string list and split it to array,removing the last empty entry
-    var filesArray = (function () {
-        try {
-            return execSync(cmd, {
-                    encoding: 'utf8',
-                    cwd: config.dirname + "/" + config.repoDir + "/" + repoName + ".git"
-                })
-                .split('\n')
-                .slice(0, -1);
-        } catch (err) {
-            if (gLogging) console.log(err);
-            return "";
+    var filesArray = [];
+    try {
+        filesArray = execSync(cmd, {
+                encoding: 'utf8',
+                cwd: config.dirname + "/" + config.repoDir + "/" + repoName
+            })
+            .split('\n')
+            .slice(0, -1);
+    } catch (err) {
+        if (gLogging) {
+            console.log(err);
+            console.log("Git ls Tree Error");
         }
-    });
+    }
     var output = {};
     var current;
     //Loop to formulate the array input to structured JSON output

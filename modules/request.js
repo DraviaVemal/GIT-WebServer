@@ -4,7 +4,7 @@
  * @param  {JSON} config Master configuration JSON
  */
 exports.userValidation = function (route, config) {
-    var git = require("./git");
+    var gitAction = require("./gitAction");
     var validate = require("./validation");
     //Retrive/update loged in user privilage
     route.all("*", function (req, res, next) {
@@ -24,13 +24,14 @@ exports.userValidation = function (route, config) {
         }
     });
     //Git login verification
+    //flag to check the request is from GIT-SCM
     var gitRequest = false;
     route.all(config.gitURL + "/:repoName.git*", function (req, res, next) {
         if (req.params.repoName) {
             if ("gzip" === req.headers["accept-encoding"] &&
                 "git/" === req.headers["user-agent"].substring(0, 4)) {
                 gitRequest = true;
-                git.checkAuth(req, res, next, config);
+                gitAction.checkAuth(req, res, next, config);
             } else {
                 res.redirect(config.gitURL + "/" + req.params.repoName);
             }
@@ -118,7 +119,7 @@ exports.staticFile = function (route, config) {
  * @param  {JSON} config Master configuration JSON
  */
 exports.get = function (route, config) {
-    var git = require("./git");
+    var gitAction = require("./gitAction");
     var validate = require("./validation");
     route.get("/", function (req, res) {
         if (validate().loginValidation(req, res, config)) {
@@ -212,7 +213,7 @@ exports.get = function (route, config) {
                 .isNotEmpty()
                 .boolResult())) {
             var repoDetails = require("./branchesCommits");
-            var headDetails = repoDetails.generalDetails(config, req.params.repoName);
+            var headDetails = repoDetails.generalDetails(config, req.params.repoName + ".git");
             headDetails.head = validate(headDetails.head)
                 .isNotEmpty()
                 .boolResult() ? headDetails.head : "emptyRepository";
@@ -224,228 +225,230 @@ exports.get = function (route, config) {
         }
     });
     route.get(config.gitURL + "/:repoName/:repoPage/:repoBranch", function (req, res, next) {
-        var validate = require("./validation");
-        if ((validate(req.params.repoName)
-                .isNotEmpty()
-                .boolResult()) &&
-            (validate(req.params.repoPage)
-                .isNotEmpty()
-                .boolResult())) {
-            var gitRepo = require("../dbSchema/gitRepo");
-            var page;
-            var details = {};
-            var repoDetails = require("./branchesCommits");
-            var branchDetails = repoDetails.generalDetails(config, req.params.repoName);
-            if (validate(req.params.repoBranch).isNotEmpty().isEquals("emptyRepository").boolResult() &&
-                validate(branchDetails.head).isNotEmpty().boolResult()) {
-                res.redirect(config.gitURL + "/" + req.params.repoName + "/" + req.params.repoPage + "/" + branchDetails.head);
-            } else {
-                req.params.repoBranch = req.params.repoBranch || branchDetails.head;
-                req.params.repoBranch = validate(req.params.repoBranch)
+        if (!req.params.repoName.match(/.git/)) {
+            var validate = require("./validation");
+            if ((validate(req.params.repoName)
                     .isNotEmpty()
-                    .boolResult() ? req.params.repoBranch : "emptyRepository";
-                details.branchDropDown = branchDetails.branches;
-                var notEmptyBranch = req.params.repoBranch != "emptyRepository";
-                switch (req.params.repoPage) {
-                    case "files":
-                        var isFiles = true;
-                        if (notEmptyBranch) {
-                            var document = require('html-element').document;
-                            //Folder Hirecharch creation uling html doc element
-                            var directoryStructureBuilder = function (data) {
-                                var masterList = document.createElement('ul');
-                                if (typeof directoryStructureBuilder.itemCounter == 'undefined') {
-                                    directoryStructureBuilder.itemCounter = 0;
-                                    masterList.setAttribute("class", "file-structure primary");
-                                } else {
-                                    ++directoryStructureBuilder.itemCounter;
-                                    masterList.setAttribute("style", "display: none;");
-                                    masterList.setAttribute("class", "file-structure");
-                                }
-                                masterList.setAttribute("data-fileitem", directoryStructureBuilder.itemCounter);
-                                for (var i in data) {
-                                    var item = document.createElement('li');
-                                    var itemIcon = document.createElement("span");
-                                    if (Object.keys(data[i]).length > 2) {
-                                        itemIcon.setAttribute("class", "glyphicon glyphicon-folder-close");
-                                        var aitem = document.createElement('a');
-                                        aitem.appendChild(document.createTextNode(" " + data[i].name));
-                                        aitem.setAttribute("onclick", "$('[data-fileitem=" + (directoryStructureBuilder.itemCounter + 1) + "]').toggle();");
-                                        item.setAttribute("href", "javascript:;;;");
-                                        item.appendChild(itemIcon);
-                                        item.appendChild(aitem);
-                                        delete data[i].name;
-                                        delete data[i].type;
-                                        item.appendChild(new directoryStructureBuilder(data[i]));
+                    .boolResult()) &&
+                (validate(req.params.repoPage)
+                    .isNotEmpty()
+                    .boolResult())) {
+                var gitRepo = require("../dbSchema/gitRepo");
+                var page;
+                var details = {};
+                var repoDetails = require("./branchesCommits");
+                var branchDetails = repoDetails.generalDetails(config, req.params.repoName + ".git");
+                if (validate(req.params.repoBranch).isNotEmpty().isEquals("emptyRepository").boolResult() &&
+                    validate(branchDetails.head).isNotEmpty().boolResult()) {
+                    res.redirect(config.gitURL + "/" + req.params.repoName + "/" + req.params.repoPage + "/" + branchDetails.head);
+                } else {
+                    req.params.repoBranch = req.params.repoBranch || branchDetails.head;
+                    req.params.repoBranch = validate(req.params.repoBranch)
+                        .isNotEmpty()
+                        .boolResult() ? req.params.repoBranch : "emptyRepository";
+                    details.branchDropDown = branchDetails.branches;
+                    var notEmptyBranch = req.params.repoBranch != "emptyRepository";
+                    switch (req.params.repoPage) {
+                        case "files":
+                            var isFiles = true;
+                            if (notEmptyBranch) {
+                                var document = require('html-element').document;
+                                //Folder Hirecharch creation uling html doc element
+                                var directoryStructureBuilder = function (data) {
+                                    var masterList = document.createElement('ul');
+                                    if (typeof directoryStructureBuilder.itemCounter == 'undefined') {
+                                        directoryStructureBuilder.itemCounter = 0;
+                                        masterList.setAttribute("class", "file-structure primary");
                                     } else {
-                                        if (data[i].type == "file") {
-                                            itemIcon.setAttribute("class", "glyphicon glyphicon-file");
-                                        } else {
-                                            itemIcon.setAttribute("class", "glyphicon glyphicon-folder-open");
-                                        }
-                                        item.appendChild(itemIcon);
-                                        item.appendChild(document.createTextNode(" " + data[i].name));
+                                        ++directoryStructureBuilder.itemCounter;
+                                        masterList.setAttribute("style", "display: none;");
+                                        masterList.setAttribute("class", "file-structure");
                                     }
-                                    masterList.appendChild(item);
+                                    masterList.setAttribute("data-fileitem", directoryStructureBuilder.itemCounter);
+                                    for (var i in data) {
+                                        var item = document.createElement('li');
+                                        var itemIcon = document.createElement("span");
+                                        if (Object.keys(data[i]).length > 2) {
+                                            itemIcon.setAttribute("class", "glyphicon glyphicon-folder-close");
+                                            var aitem = document.createElement('a');
+                                            aitem.appendChild(document.createTextNode(" " + data[i].name));
+                                            aitem.setAttribute("onclick", "$('[data-fileitem=" + (directoryStructureBuilder.itemCounter + 1) + "]').toggle();");
+                                            item.setAttribute("href", "javascript:;;;");
+                                            item.appendChild(itemIcon);
+                                            item.appendChild(aitem);
+                                            delete data[i].name;
+                                            delete data[i].type;
+                                            item.appendChild(new directoryStructureBuilder(data[i]));
+                                        } else {
+                                            if (data[i].type == "file") {
+                                                itemIcon.setAttribute("class", "glyphicon glyphicon-file");
+                                            } else {
+                                                itemIcon.setAttribute("class", "glyphicon glyphicon-folder-open");
+                                            }
+                                            item.appendChild(itemIcon);
+                                            item.appendChild(document.createTextNode(" " + data[i].name));
+                                        }
+                                        masterList.appendChild(item);
+                                    }
+                                    return masterList;
+                                };
+                                var folders = repoDetails.repoFileStructure(config, req.params.repoName + ".git", req.params.repoBranch);
+                                if (Object.keys(folders).length) {
+                                    details.folders = new directoryStructureBuilder(folders).outerHTML;
+                                } else {
+                                    details.folders = "<h3>Repository is empty</h3>";
                                 }
-                                return masterList;
-                            };
-                            var folders = repoDetails.repoFileStructure(config, req.params.repoName, req.params.repoBranch);
-                            if (Object.keys(folders).length) {
-                                details.folders = new directoryStructureBuilder(folders).outerHTML;
                             } else {
                                 details.folders = "<h3>Repository is empty</h3>";
                             }
-                        } else {
-                            details.folders = "<h3>Repository is empty</h3>";
-                        }
-                        page = "repo/files";
-                        if (req.body.opti) {
-                            res.render("partials/" + page, {
-                                folders: details.folders
-                            });
-                        }
-                        break;
-                    case "branches":
-                        var isBranches = true;
-                        var branchesCommits = require("./branchesCommits");
-                        details = branchesCommits.generalDetails(config, req.params.repoName);
-                        var verify = false; //Check for empty repository
-                        if (details.head) {
-                            verify = true;
-                        }
-                        page = "repo/branches";
-                        if (req.body.opti) {
-                            res.render("partials/" + page, {
-                                branchName: details.head,
-                                branches: details.branches,
-                                verify: verify
-                            });
-                        }
-                        break;
-                    case "pullrequest":
-                        var isPullRequest = true;
-                        page = "repo/pullRequest";
-                        //TODO : Opti Load
-                        break;
-                    case "history":
-                        var isHistory = true;
-                        var branchHistory = require("./branchesCommits");
-                        details.history = branchHistory.repoHistory(config, req.params.repoName);
-                        page = "repo/history";
-                        //TODO : Opti Load
-                        break;
-                    case "setting":
-                        var isSetting = true;
-                        page = "repo/setting";
-                        if (req.body.opti) {
-                            gitRepo.gitRepoFindOne({
-                                repo: req.params.repoName
-                            }, req, res, config, function (req, res, config, repoResult) {
-                                var setting = false;
-                                if (repoResult.createdUser.toUpperCase() == req.session.userData.userName) {
-                                    setting = true;
-                                }
+                            page = "repo/files";
+                            if (req.body.opti) {
+                                res.render("partials/" + page, {
+                                    folders: details.folders
+                                });
+                            }
+                            break;
+                        case "branches":
+                            var isBranches = true;
+                            var branchesCommits = require("./branchesCommits");
+                            details = branchesCommits.generalDetails(config, req.params.repoName + ".git");
+                            var verify = false; //Check for empty repository
+                            if (details.head) {
+                                verify = true;
+                            }
+                            page = "repo/branches";
+                            if (req.body.opti) {
                                 res.render("partials/" + page, {
                                     branchName: details.head,
                                     branches: details.branches,
-                                    setting: setting,
                                     verify: verify
                                 });
-                            });
-                        }
-                        break;
-                    case "readme":
-                        var isReadME = true;
-                        var fileSystem = require("fs");
-                        var markdown = require("markdown").markdown;
-                        var path = config.dirname + "/" + config.repoDir + "/" + req.params.repoName + "/README.md";
-                        if (fileSystem.existsSync(path)) {
-                            var mdFileData = fileSystem.readFileSync(path, 'utf8');
-                            details.readmeHTML = markdown.toHTML(mdFileData);
-                        } else {
-                            details.readmeHTML = '<h3 class="text-center">No README.md file found in repository</h3>';
-                        }
-                        if (req.body.opti) {
-                            res.render("partials/" + page, {
-                                readmeHTML: details.readmeHTML
-                            });
-                        }
-                        page = "repo/readme";
-                        break;
-                    default:
-                        next();
-                        break;
-                }
-                if (page) {
-                    gitRepo.gitRepoFind({}, req, res, config, function (req, res, config, repoResult) {
-                        var currentRepoDetails = {};
-                        repoResult.forEach(function (repoDetails) {
-                            if (repoDetails.repo == req.params.repoName) {
-                                currentRepoDetails.descripton = repoDetails.description;
-                                currentRepoDetails.url = repoDetails.url;
-                                currentRepoDetails.private = repoDetails.private;
-                                currentRepoDetails.repo = repoDetails.repo;
-                                if (repoDetails.createdUser.toUpperCase() == req.session.userData.userName) {
-                                    currentRepoDetails.setting = true;
+                            }
+                            break;
+                        case "pullrequest":
+                            var isPullRequest = true;
+                            page = "repo/pullRequest";
+                            //TODO : Opti Load
+                            break;
+                        case "history":
+                            var isHistory = true;
+                            var branchHistory = require("./branchesCommits");
+                            details.history = branchHistory.repoHistory(config, req.params.repoName);
+                            page = "repo/history";
+                            //TODO : Opti Load
+                            break;
+                        case "setting":
+                            var isSetting = true;
+                            page = "repo/setting";
+                            if (req.body.opti) {
+                                gitRepo.gitRepoFindOne({
+                                    repo: req.params.repoName
+                                }, req, res, config, function (req, res, config, repoResult) {
+                                    var setting = false;
+                                    if (repoResult.createdUser.toUpperCase() == req.session.userData.userName) {
+                                        setting = true;
+                                    }
+                                    res.render("partials/" + page, {
+                                        branchName: details.head,
+                                        branches: details.branches,
+                                        setting: setting,
+                                        verify: verify
+                                    });
+                                });
+                            }
+                            break;
+                        case "readme":
+                            var isReadME = true;
+                            var markdown = require("markdown").markdown;
+                            var readMe = gitAction.getRepoFile(config, req.params.repoName + ".git", req.params.repoBranch, "README.md");
+                            if (validate(readMe).isNotEmpty().boolResult()) {
+                                details.readmeHTML = markdown.toHTML(readMe);
+                            } else {
+                                details.readmeHTML = '<h3 class="text-center">No README.md file found in repository</h3>';
+                            }
+                            if (req.body.opti) {
+                                res.render("partials/" + page, {
+                                    readmeHTML: details.readmeHTML
+                                });
+                            }
+                            page = "repo/readme";
+                            break;
+                        default:
+                            next();
+                            break;
+                    }
+                    if (page) {
+                        gitRepo.gitRepoFind({}, req, res, config, function (req, res, config, repoResult) {
+                            var currentRepoDetails = {};
+                            repoResult.forEach(function (repoDetails) {
+                                if (repoDetails.repo == req.params.repoName) {
+                                    currentRepoDetails.descripton = repoDetails.description;
+                                    currentRepoDetails.url = repoDetails.url;
+                                    currentRepoDetails.private = repoDetails.private;
+                                    currentRepoDetails.repo = repoDetails.repo;
+                                    if (repoDetails.createdUser.toUpperCase() == req.session.userData.userName) {
+                                        currentRepoDetails.setting = true;
+                                    }
                                 }
+                            });
+                            if (currentRepoDetails.url) {
+                                res.render("repo/repoHome", { //Read Me
+                                    helpers: {
+                                        selectedRepo: function (repo) {
+                                            if (repo == req.params.repoName) return "list-group-item-info";
+                                            else return "";
+                                        },
+                                        activeTab: function () {
+                                            return page;
+                                        },
+                                        controlPannelPage: function () {
+                                            if (req.session.userAccess.Serverconfiguration) {
+                                                return "configuration";
+                                            } else if (req.session.userAccess.userControl) {
+                                                return "userAccess";
+                                            } else {
+                                                return "";
+                                            }
+                                        }
+                                    },
+                                    name: req.session.userData.name,
+                                    repo: repoResult,
+                                    descripton: currentRepoDetails.descripton,
+                                    url: currentRepoDetails.url,
+                                    private: currentRepoDetails.private,
+                                    repoName: currentRepoDetails.repo,
+                                    branchName: details.head,
+                                    branches: details.branches,
+                                    readmeHTML: details.readmeHTML,
+                                    config: config,
+                                    userAccess: req.session.userAccess,
+                                    setting: currentRepoDetails.setting,
+                                    verify: verify,
+                                    folders: details.folders,
+                                    history: details.history,
+                                    branchDropDown: details.branchDropDown,
+                                    activeBranch: req.params.repoBranch,
+                                    notEmptyBranch: notEmptyBranch,
+                                    isReadME: isReadME,
+                                    isFiles: isFiles,
+                                    isBranches: isBranches,
+                                    isHistory: isHistory,
+                                    isPullRequest: isPullRequest,
+                                    isSetting: isSetting
+                                });
+                            } else {
+                                res.redirect("/");
                             }
                         });
-                        if (currentRepoDetails.url) {
-                            res.render("repo/repoHome", { //Read Me
-                                helpers: {
-                                    selectedRepo: function (repo) {
-                                        if (repo == req.params.repoName) return "list-group-item-info";
-                                        else return "";
-                                    },
-                                    activeTab: function () {
-                                        return page;
-                                    },
-                                    controlPannelPage: function () {
-                                        if (req.session.userAccess.Serverconfiguration) {
-                                            return "configuration";
-                                        } else if (req.session.userAccess.userControl) {
-                                            return "userAccess";
-                                        } else {
-                                            return "";
-                                        }
-                                    }
-                                },
-                                name: req.session.userData.name,
-                                repo: repoResult,
-                                descripton: currentRepoDetails.descripton,
-                                url: currentRepoDetails.url,
-                                private: currentRepoDetails.private,
-                                repoName: currentRepoDetails.repo,
-                                branchName: details.head,
-                                branches: details.branches,
-                                readmeHTML: details.readmeHTML,
-                                config: config,
-                                userAccess: req.session.userAccess,
-                                setting: currentRepoDetails.setting,
-                                verify: verify,
-                                folders: details.folders,
-                                history: details.history,
-                                branchDropDown: details.branchDropDown,
-                                activeBranch: req.params.repoBranch,
-                                notEmptyBranch: notEmptyBranch,
-                                isReadME: isReadME,
-                                isFiles: isFiles,
-                                isBranches: isBranches,
-                                isHistory: isHistory,
-                                isPullRequest: isPullRequest,
-                                isSetting: isSetting
-                            });
-                        } else {
-                            res.redirect("/");
-                        }
-                    });
+                    }
                 }
+            } else {
+                if (gLogging) console.log("Invalid Input rejected");
+                res.status(503);
+                res.send();
             }
         } else {
-            if (gLogging) console.log("Invalid Input rejected");
-            res.status(503);
-            res.send();
+            next();
         }
     });
     route.get("/user/setting/:settingPage", function (req, res, next) {
@@ -624,7 +627,7 @@ exports.get = function (route, config) {
  * @param  {JSON} config Master configuration JSON
  */
 exports.post = function (route, config) {
-    var git = require("./git");
+    var gitAction = require("./gitAction");
     var validate = require("./validation");
     route.post("/login", function (req, res) {
         var userDB = require("../dbSchema/user");
@@ -715,11 +718,11 @@ exports.post = function (route, config) {
         });
     });
     route.post("/user/createRepo", function (req, res) {
-        git.gitInit(req, res, config);
+        gitAction.gitInit(req, res, config);
     });
     route.post(config.gitURL + "/:repoName/setting/:repoBranch", function (req, res) {
         if (req.body.repoName) {
-            git.deleteRepo(req, res, config);
+            gitAction.deleteRepo(req, res, config);
         }
     });
     return route;
@@ -730,15 +733,15 @@ exports.post = function (route, config) {
  * @param  {JSON} config Master configuration JSON
  */
 exports.gitRequest = function (route, config) {
-    var git = require("./git");
+    var gitAction = require("./gitAction");
     route.get(config.gitURL + '/:repoName.git/info/refs', function (req, res) {
-        git.getInfoRefs(req, res, config);
+        gitAction.getInfoRefs(req, res, config);
     });
     route.post(config.gitURL + '/:repoName.git/git-receive-pack', function (req, res) {
-        git.postReceivePack(req, res, config);
+        gitAction.postReceivePack(req, res, config);
     });
     route.post(config.gitURL + '/:repoName.git/git-upload-pack', function (req, res) {
-        git.postUploadPack(req, res, config);
+        gitAction.postUploadPack(req, res, config);
     });
     return route;
 };

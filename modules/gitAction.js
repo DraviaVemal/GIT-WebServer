@@ -269,14 +269,30 @@ exports.syncRepo = function (req, res, data, config, next) {
             }
         }
     });
-    if (req.body.repoReadMe != "") { // Avoid pull on created empty repository
-        var simpleGit = require('simple-git')(config.dirname + "/" + config.repoDir + "/" + data.repo + "/");
-        simpleGit.pull(function (err) {
-            if (err) {
-                if (gLogging) console.log(err);
-            } else {
-                if (gLogging) console.log("Repo : " + data.repo + " Sync completed");
-            }
-        });
+};
+/**
+ * 
+ * @param  {object} config Repository Name
+ * @param  {String} repoName Repository Name
+ * @param  {String} repoBranch Branch Name in that Repository
+ */
+exports.getRepoFile = function (config, repoName, repoBranch, repoFile) {
+    var execSync = require('child_process').execSync;
+    //TODO : Branch,repoName sanitisation
+    //Git Command to get the file structure of specific branch
+    var cmd = "git archive " + repoBranch + " " + repoFile;
+    //Recives the return string list and split it to array,removing the last empty entry
+    var fileText;
+    try {
+        fileText = execSync(cmd, {
+                encoding: 'utf8',
+                cwd: config.dirname + "/" + config.repoDir + "/" + repoName
+            });
+    } catch (err) {
+        if (gLogging) {
+            console.log(err);
+            console.log("Git file read Error");
+        }
     }
+    return fileText;
 };

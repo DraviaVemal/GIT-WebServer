@@ -16,6 +16,12 @@
 require("git-webserver")(__dirname);
 ```
 
+## Scope Coverd
+
+    User Authentication System both web and git push
+    Git Repo. Creation, File Explorer, Branch View, General History,Deletion
+    Basic UI for all functionality
+
 ## Config option
 
     create config.json in root directory
@@ -64,6 +70,7 @@ require("git-webserver")(__dirname);
 
 ## TODO
 
+    Pull Request Handling
     Code documentaion
     Test Case Update for dynamic feature
     UI modernisation

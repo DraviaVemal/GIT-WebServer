@@ -1,6 +1,6 @@
 {
   "name": "git-webserver",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Web Server Integrated GIT Version Control System",
   "main": "server.js",
   "scripts": {

@@ -1,0 +1,41 @@
+<ul class="nav nav-tabs repo-tabs">
+    <li role="presentation" {{#if isReadME}} class="active"{{/if}}>
+        <a data-test="gitReadMe" href="{{config.gitURL}}/{{repoName}}/readme/{{activeBranch}}">Read Me</a>
+    </li>
+    <li role="presentation" {{#if isFiles}} class="active"{{/if}}>
+        <a data-test="gitFiles" href="{{config.gitURL}}/{{repoName}}/files/{{activeBranch}}">Files</a>
+    </li>
+    <li role="presentation" {{#if isBranches}} class="active"{{/if}}>
+        <a data-test="gitBranches" href="{{config.gitURL}}/{{repoName}}/branches/{{activeBranch}}">Branch</a>
+    </li>
+    <li role="presentation" {{#if isPullRequest}} class="active"{{/if}}>
+        <a data-test="gitPullRequest" href="{{config.gitURL}}/{{repoName}}/pullrequest/{{activeBranch}}">Pull Request</a>
+    </li>
+    <li role="presentation" {{#if isHistory}} class="active"{{/if}}>
+        <a data-test="gitHistory" href="{{config.gitURL}}/{{repoName}}/history/{{activeBranch}}">History</a>
+    </li>
+    {{#if setting}}
+    <li role="presentation" {{#if isSetting}} class="active"{{/if}}>
+        <a data-test="gitSetting" href="{{config.gitURL}}/{{repoName}}/setting/{{activeBranch}}">Setting</a>
+    </li>
+    {{/if}}
+    <li class="pull-right branch-dropdown">
+        <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Branch :
+                <strong>{{activeBranch}}</strong>
+                {{#if notEmptyBranch}}
+                <span class="caret"></span>
+                {{/if}}
+            </button>
+            {{#if notEmptyBranch}}
+            <ul class="dropdown-menu">
+                {{#each branchDropDown}}
+                <li>
+                    <a href="{{../config.gitURL}}/{{../repoName}}/files/{{this}}">{{this}}</a>
+                </li>
+                {{/each}}
+            </ul>
+            {{/if}}
+        </div>
+    </li>
+</ul>

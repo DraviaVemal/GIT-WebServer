@@ -4,28 +4,28 @@
  * @param  {String} repoName Repository Name
  */
 exports.generalDetails = function (config, repoName) {
-    var fileSystem = require("fs");
-    if (fileSystem.existsSync(config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git/history.json")) {
-        var historyString = fileSystem.readFileSync(config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git/history.json");
-        var historyJSON = {};
-        var branchName = [];
-        try {
-            historyJSON = JSON.parse(historyString);
-        } catch (err) {
-            if (config.logging) console.log(err);
-            //TODO Error Handling
-        }
-        for (var branchHeads in historyJSON.heads) {
-            branchName.push(branchHeads);
-        }
-        var data = {
-            head: historyJSON.REFS.HEAD,
-            branches: branchName
-        };
-        return data;
-    } else {
-        return {};
+    var execSync = require('child_process').execSync;
+    var cmd = "git branch";
+    //get the list of branch from executing git command in bare repo
+    //the list is spilt into array and last empty record is removed
+    var branchArray = execSync(cmd, {
+            encoding: 'utf8',
+            cwd: config.dirname + "/" + config.repoDir + "/" + repoName
+        })
+        .split('\n')
+        .slice(0, -1);
+    //Branch details sanitisation to remove current branch * mentioning
+    for (var branch in branchArray) {
+        branchArray[branch] = branchArray[branch]
+            .replace("*", "")
+            .trim();
     }
+    //Data formating to return data to the caller
+    var data = {
+        head: branchArray[0],
+        branches: branchArray
+    };
+    return data;
 };
 
 /**
@@ -38,20 +38,20 @@ exports.repoHistory = function (config, repoName) {
     if (fileSystem.existsSync(config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git/history.json")) {
         var historyString = fileSystem.readFileSync(config.appRoutePath + "/" + config.repoDir + "/" + repoName + ".git/history.json");
         var historyJSON = {};
-        var result =[];
+        var result = [];
         try {
             historyJSON = JSON.parse(historyString);
         } catch (err) {
-            if (config.logging) console.log(err);
+            if (gLogging) console.log(err);
             //TODO Error Handling
         }
-        for(var i in historyJSON.commits){
+        for (var i in historyJSON.commits) {
             var data = {
-                author:historyJSON.commits[i].author.user.name,
-                message:historyJSON.commits[i].message,
-                timestamp:historyJSON.commits[i].committer.date,
-                sha:historyJSON.commits[i].sha1.substr(0,7),
-                branch:historyJSON.commits[i].refs
+                author: historyJSON.commits[i].author.user.name,
+                message: historyJSON.commits[i].message,
+                timestamp: historyJSON.commits[i].committer.date,
+                sha: historyJSON.commits[i].sha1.substr(0, 7),
+                branch: historyJSON.commits[i].refs
             };
             result.push(data);
         }
@@ -59,4 +59,52 @@ exports.repoHistory = function (config, repoName) {
     } else {
         return {};
     }
+};
+/**
+ * Returns JSON file structure of repo branch
+ * @param  {object} config Repository Name
+ * @param  {String} repoName Repository Name
+ * @param  {String} repoBranch Branch Name in that Repository
+ */
+exports.repoFileStructure = function (config, repoName, repoBranch) {
+    var execSync = require('child_process').execSync;
+    //TODO : Branch,repoName sanitisation
+    //Git Command to get the file structure of specific branch
+    var cmd = "git ls-tree -r --name-only " + repoBranch;
+    //Recives the return string list and split it to array,removing the last empty entry
+    var filesArray = [];
+    try {
+        filesArray = execSync(cmd, {
+                encoding: 'utf8',
+                cwd: config.dirname + "/" + config.repoDir + "/" + repoName
+            })
+            .split('\n')
+            .slice(0, -1);
+    } catch (err) {
+        if (gLogging) {
+            console.log(err);
+            console.log("Git ls Tree Error");
+        }
+    }
+    var output = {};
+    var current;
+    //Loop to formulate the array input to structured JSON output
+    //Note : This structure should be maintained. UI is built based on current format
+    //Object pointer logic is used in this loop
+    for (var a = 0; a < filesArray.length; a++) {
+        var s = filesArray[a].split('/');
+        current = output;
+        for (var i = 0; i < s.length; i++) {
+            if (s[i] != '') {
+                if (current[s[i]] == null) {
+                    current[s[i]] = {
+                        name: s[i],
+                        type: s[i].indexOf('.') !== -1 ? "file" : "Directory"
+                    };
+                }
+                current = current[s[i]];
+            }
+        }
+    }
+    return output;
 };

@@ -74,11 +74,11 @@ exports.usersMongoDB = function (config) {
  * @returns {JSON} return config.exist
  */
 exports.createUser = function (req, res, data, config, next) {
-    var validation = require("../modules/validation");
-    if (validation.variableNotEmpty(data.name, 3) &&
-        validation.variableNotEmpty(data.userName, 3) &&
-        validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ &&
-        validation.variableNotEmpty(data.password, 8)) {
+    var validate = require("../modules/validation");
+    if (validate(data.name).isNotEmpty().hasLength(3).boolResult() &&
+        validate(data.userName).isNotEmpty().hasLength(3).boolResult() &&
+        validate(data.eMail).isNotEmpty().boolResult() /* TODO : regx Validation pending */ &&
+        validate(data.password).isNotEmpty().hasLength(8).boolResult()) {
         data.eMail = data.eMail.toUpperCase();
         data.userNameDisplay = data.userName;
         data.userName = data.userName.toUpperCase();
@@ -86,7 +86,7 @@ exports.createUser = function (req, res, data, config, next) {
             var users = exports.usersMongoDB(config);
             users.create(data, function (err) {
                 if (err) {
-                    if (config.logging) console.log(err);
+                    if (gLogging) console.log(err);
                     if (err.code == 11000) {
                         config.exist = true;
                         next(req, res, config);
@@ -101,7 +101,7 @@ exports.createUser = function (req, res, data, config, next) {
             });
         }
     } else {
-        if (config.logging) console.log("Create User Missing Input Error");
+        if (gLogging) console.log("Create User Missing Input Error");
         res.status(403);
         res.send();
     }
@@ -118,9 +118,9 @@ exports.createUser = function (req, res, data, config, next) {
  * Note : Common login caller for both web and git authentication   
  */
 exports.loginUser = function (req, res, data, config, next) {
-    var validation = require("../modules/validation");
-    if ((validation.variableNotEmpty(data.eMail) /* TODO : regx Validation pending */ ) &&
-        validation.variableNotEmpty(data.password, 8)) {
+    var validate = require("../modules/validation");
+    if ((validate(data.eMail).isNotEmpty().boolResult() /* TODO : regx Validation pending */ ) &&
+        validate(data.password).hasLength(8).isNotEmpty().boolResult()) {
         if (data.eMail) data.eMail = data.eMail.toUpperCase();
         if (config.database == "Mongo") {
             var users = exports.usersMongoDB(config);
@@ -135,7 +135,7 @@ exports.loginUser = function (req, res, data, config, next) {
             };
             users.findOne(query, function (err, result) {
                 if (err) {
-                    if (config.logging) {
+                    if (gLogging) {
                         console.log(err);
                     }
                     if (config.git) {
@@ -176,7 +176,7 @@ exports.loginUser = function (req, res, data, config, next) {
             });
         }
     } else {
-        if (config.logging) console.log("Login User Missing Input Error");
+        if (gLogging) console.log("Login User Missing Input Error");
         res.status(403);
         res.send();
     }
@@ -193,7 +193,7 @@ exports.getAllUsers = function (req, res, config, next) {
         var user = exports.usersMongoDB(config);
         user.find({}, function (err, userResult) {
             if (err) {
-                if (config.logging) console.log(err);
+                if (gLogging) console.log(err);
                 res.status(500);
                 res.send();
             } else {
@@ -202,7 +202,7 @@ exports.getAllUsers = function (req, res, config, next) {
                 var accessCntrl = userAccess.accessCntrlMongoDB(config);
                 accessCntrl.find({}, function (err, accessResult) {
                     if (err) {
-                        if (config.logging) console.log(err);
+                        if (gLogging) console.log(err);
                     } else {
                         for (var i in userResult) {
                             for (var j in accessResult) {

@@ -14,7 +14,9 @@ exports.gitRepoMongoDB = function (config) {
     if (config.dbUser != "" && config.dbPassword != "") {
         mongoURI = "mongodb://" + config.dbUser + ":" + config.dbPassword + "@" + config.dbURL + "/" + config.dbName;
     }
-    mongoose.connect(mongoURI,{ useNewUrlParser: true });
+    mongoose.connect(mongoURI, {
+        useNewUrlParser: true
+    });
     autoIncrement.initialize(mongoose);
     var gitRepo = new Schema({
         repo: {
@@ -42,19 +44,19 @@ exports.gitRepoMongoDB = function (config) {
             type: String,
             required: true
         },
-        userList:[{
-            userName:{
-                type:String,
-                require:true
+        userList: [{
+            userName: {
+                type: String,
+                require: true
             },
-            readOnly:{
-                type:Boolean,
-                default:false
+            readOnly: {
+                type: Boolean,
+                default: false
             }
         }],
-        readOnly:{
-            type:Boolean,
-            default:false
+        readOnly: {
+            type: Boolean,
+            default: false
         },
         timeStamp: {
             type: Date,
@@ -77,17 +79,17 @@ exports.gitRepoMongoDB = function (config) {
  * @param  {function} next Callback function(req,res,config)
  */
 exports.gitRepoCreate = function (req, res, data, config, next) {
-    var validation = require("../modules/validation");
-    if (validation.variableNotEmpty(data.repo, 4) &&
-        validation.variableNotEmpty(data.createdUser) &&
-        validation.variableNotEmpty(data.url) &&
-        validation.variableNotEmpty(data.description)) {
+    var validate = require("../modules/validation");
+    if (validate(data.repo).isNotEmpty().hasLength(4).boolResult() &&
+        validate(data.createdUser).isNotEmpty().boolResult() &&
+        validate(data.url).isNotEmpty().boolResult() &&
+        validate(data.description).isNotEmpty().boolResult()) {
         if (config.database == "Mongo") {
             var gitRepo = exports.gitRepoMongoDB(config);
             data.logicName = data.repo.toUpperCase();
             gitRepo.create(data, function (err, gitRepo) {
                 if (err) {
-                    if (config.logging) {
+                    if (gLogging) {
                         if (err.code == 11000) {
                             var handlebarLayout = "default";
                             if (req.body.opti) {
@@ -98,7 +100,7 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
                                 layout: handlebarLayout,
                                 name: req.session.userData.name,
                                 message: message,
-                                config:config
+                                config: config
                             });
                         } else {
                             console.log(err);
@@ -113,7 +115,7 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
             });
         }
     } else {
-        if (config.logging) console.log("Git Create Repo Insert operation failed due to missing data");
+        if (gLogging) console.log("Git Create Repo Insert operation failed due to missing data");
         res.status(403);
         res.send();
     }
@@ -128,15 +130,15 @@ exports.gitRepoCreate = function (req, res, data, config, next) {
  * @param  {function} next Callback function(req,res,config)
  */
 exports.gitRepoDelete = function (req, res, data, config, next) {
-    var validation = require("../modules/validation");
-    if (validation.variableNotEmpty(data.repo, 4)) {
+    var validate = require("../modules/validation");
+    if (validate(data.repo).isNotEmpty().hasLength(4).boolResult()) {
         if (config.database == "Mongo") {
             var gitRepo = exports.gitRepoMongoDB(config);
             gitRepo.deleteOne({
                 logicName: data.repo.toUpperCase()
             }, function (err) {
                 if (err) {
-                    if (config.logging) {
+                    if (gLogging) {
                         console.log(err);
                         res.status(503);
                         res.send();
@@ -145,7 +147,7 @@ exports.gitRepoDelete = function (req, res, data, config, next) {
             });
         }
     } else {
-        if (config.logging) console.log("Git Delete Repo Insert operation failed due to missing data");
+        if (gLogging) console.log("Git Delete Repo Insert operation failed due to missing data");
         res.status(403);
         res.send();
     }
@@ -163,7 +165,7 @@ exports.gitRepoFindOne = function (query, req, res, config, next) {
         var gitRepo = exports.gitRepoMongoDB(config);
         gitRepo.findOne(query, function (err, result) {
             if (err) {
-                if (config.logging) {
+                if (gLogging) {
                     console.log(err);
                     res.status(503);
                     res.send();
@@ -185,7 +187,7 @@ exports.gitRepoFind = function (query, req, res, config, next) {
         var gitRepo = exports.gitRepoMongoDB(config);
         gitRepo.find(query, function (err, result) {
             if (err) {
-                if (config.logging) {
+                if (gLogging) {
                     console.log(err);
                     res.status(503);
                     res.send();

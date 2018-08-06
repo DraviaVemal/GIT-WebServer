@@ -1,3 +1,4 @@
+$wheatWhite: #ccc;
 .badge {
   background-color: $color-white;
   color: $color-black;
@@ -7,36 +8,44 @@
 }
 
 .tab-border {
-  border: 1px solid #ccc;
+  border: 1px solid $wheatWhite;
   border-top: 0;
   padding: 0;
 }
 
-.file-structure{
+.file-structure {
+  .primary {
+    padding: 20px;
+  }
   list-style: none;
 }
 
-.file-structure.primary{
-  padding: 20px;
-}
-
-.branch-structure{
+.branch-structure {
   padding: 20px;
   padding-bottom: 0;
 }
 
-.setting-structure{
+.setting-structure {
   padding: 20px;
 }
 
-.history-structure{
+.history-structure {
   padding: 20px;
   padding-bottom: 0;
 }
 
-.table-border{
-  border: 1px solid #ccc;
+.table-border {
+  border: 1px solid $wheatWhite;
 }
-.nav.nav-tabs{
-  border: 1px solid #ccc;
+
+.nav.nav-tabs {
+  border: 1px solid $wheatWhite;
+}
+
+.repo-tabs {
+  padding: 5px;
+}
+
+.nav-tabs>li {
+  margin-bottom: -6px;
 }

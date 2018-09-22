@@ -2,7 +2,9 @@
 
 ## Message
 
-    Under Development project, wait for release v1.0.0 for backward compatable updates to start
+    Under Development project, wait for release v1.0.0 for backward compatable updates to start.
+    
+    Sorry Guys currently engaged in other work if and one need urgent focus on this project drop a mail :)
 
 ## Beta version installation
 
